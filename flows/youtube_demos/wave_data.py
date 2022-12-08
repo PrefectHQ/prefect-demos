@@ -45,3 +45,4 @@ def wave_data(file_name: str = 'wave_data.csv'):
 
 if __name__ == "__main__":
     wave_data()
+    
