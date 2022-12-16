@@ -8,6 +8,7 @@ def my_task():
 def hello_world():
     my_task()
     print("What is your favorite number?")
+    
     return 42
 
 if __name__ == "__main__":

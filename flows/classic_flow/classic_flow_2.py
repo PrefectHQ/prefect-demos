@@ -13,7 +13,6 @@ from io import StringIO
 
 @task
 def read_in_raw_data():
-    from prefect_aws.s3 import S3Bucket
 
     s3_raw_data_bucket = S3Bucket.load("raw-data-jaffle-shop")
     csv_contents = s3_raw_data_bucket.read_path("jaffle_shop_customers.csv")
