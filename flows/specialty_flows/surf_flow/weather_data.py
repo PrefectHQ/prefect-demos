@@ -8,7 +8,7 @@ import pandas as pd
 
 @task(name="Weather API Call", 
       cache_key_fn=task_input_hash,
-      result_storage=S3Bucket.load('flow-cache'))
+      result_storage=S3Bucket.load('result-storage'))
 def weather_api_call():
     lat = 42.36626947261866
     lon = -71.09014952641706

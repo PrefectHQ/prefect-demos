@@ -21,6 +21,20 @@ s3_bucket = S3Bucket(
         aws_credentials=aws_creds,
         basepath="prod"
     )
-s3_bucket.save('flow-cache', overwrite=True)
+s3_bucket.save('result-storage', overwrite=True)
+
+s3_bucket = S3Bucket(
+        bucket_name="se-demo-flow-code-store",
+        aws_credentials=aws_creds,
+        basepath="prod"
+    )
+s3_bucket.save('flow-code-storage', overwrite=True)
+
+s3_bucket = S3Bucket(
+        bucket_name="dbt-tutorial-public",
+        aws_credentials=aws_creds,
+        endpoint_url="s3://dbt-tutorial-public/"
+    )
+s3_bucket.save('raw-data-jaffle-shop', overwrite=True)
 
 print('Production Blocks Created or Edited!')
