@@ -7,7 +7,7 @@ import pandas as pd
 
 @task(name="Wave API Call",
       cache_key_fn=task_input_hash,
-      result_storage=S3Bucket.load('flow-cache'))
+      result_storage=S3Bucket.load('result-storage'))
 def wave_api_call(file_name: str = 'wave_data.csv'):
     response = requests.get("https://www.ndbc.noaa.gov/data/realtime2/21414.dart")
     logger = get_run_logger()
