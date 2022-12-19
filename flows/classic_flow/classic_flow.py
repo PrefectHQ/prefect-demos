@@ -36,7 +36,6 @@ def often_fails_task():
     elif outcome == 'Success':
         return 'Success!!'
 
-# this task keeps crashing
 @task(
     name="Very Large Computation",
     cache_key_fn=task_input_hash, 
@@ -94,7 +93,7 @@ def demo_flow(desired_outcome: str = 'Fail'):
 
     ast2 = always_succeeds_task.submit(inner_loop_dep)
 
-    if always_succeeds_task.get_state() == "COMPLETED":
+    if ast.get_state().type != 'COMPLETED':
         sub_flow()
     
     often_fails_task.submit()
@@ -112,7 +111,7 @@ def demo_flow(desired_outcome: str = 'Fail'):
     if task_result_1.get_state().type != 'COMPLETED':
         print('-- Completed! --')
 
-        slack_webhook_block = SlackWebhook.load('staging-general-notifications')
+        slack_webhook_block = SlackWebhook.load('general-notifications')
         slack_webhook_block.notify("Hello from Prefect! Your task failed!! :(")
         # TODO: Change dom du block
     [looping_task() for i in range(2)]
