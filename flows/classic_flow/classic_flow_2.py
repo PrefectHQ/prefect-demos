@@ -11,18 +11,21 @@ import random
 import pandas as pd
 from io import StringIO
 
+
 @task
 def read_in_raw_data():
 
     s3_raw_data_bucket = S3Bucket.load("raw-data-jaffle-shop")
     csv_contents = s3_raw_data_bucket.read_path("jaffle_shop_customers.csv")
-    df = pd.read_csv(StringIO(csv_contents.decode('utf-8')))
+    df = pd.read_csv(StringIO(csv_contents.decode("utf-8")))
 
     print(df)
+
 
 @flow
 def main_flow():
     read_in_raw_data()
+
 
 if __name__ == "__main__":
     main_flow()
