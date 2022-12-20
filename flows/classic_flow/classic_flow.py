@@ -122,7 +122,7 @@ def demo_flow(desired_outcome: str = "Fail"):
 
         slack_webhook_block = SlackWebhook.load("general-notifications")
         slack_webhook_block.notify("Hello from Prefect! Your task failed!! :(")
-        # TODO: Change dom du block
+
     [looping_task() for i in range(2)]
 
     with tags("Specific_Tag"):

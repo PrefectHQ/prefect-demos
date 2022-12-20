@@ -44,6 +44,6 @@ s3_bucket_raw_jaffle_data = S3Bucket(
 s3_bucket_raw_jaffle_data.save("raw-data-jaffle-shop", overwrite=True)
 
 general_slack_webhook = SlackWebhook(url=general_notifications_slack_webhook)
-general_slack_webhook.save("general-notifications")
+general_slack_webhook.save("general-notifications", overwrite=True)
 
 print("Development Blocks Created or Edited!")
