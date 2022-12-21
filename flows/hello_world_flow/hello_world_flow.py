@@ -9,7 +9,7 @@ def my_task():
 @flow
 def hello_world():
     my_task()
-    print("What is your favorite number my friend?")
+    print("What is your favorite number my friendly friends?")
 
     return 42
 
