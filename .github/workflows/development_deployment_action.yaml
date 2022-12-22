@@ -13,7 +13,7 @@ env:
   ENTRYPOINT: hello_world
   FILESYSTEM_EXTRAS: s3fs
   #INFRA:
-  STORAGE: s3-bucket/flow-code-storage
+  STORAGE: s3bucket/flow-code-storage
   WORK_QUEUE: local-laptop
   #We add API keys in as a secret in the Github UI
   PREFECT_API_KEY: ${{ secrets.PREFECT_API_KEY }} 
