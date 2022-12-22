@@ -12,7 +12,6 @@ env:
   FLOW_FILE: hello_world_flow.py
   ENTRYPOINT: hello_world
   FILESYSTEM_EXTRAS: s3fs
-  #INFRA:
   STORAGE: s3-bucket/flow-code-storage
   WORK_QUEUE: local-laptop
   #We add API keys in as a secret in the Github UI
