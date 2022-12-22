@@ -9,7 +9,7 @@ on:
 # change as needed
 env:
   DEPLOYMENT_NAME: hello_world_automated_deployment
-  FLOW_FILE: hello_world_flow.py
+  FLOW_FILE: flows/hello_world_flow/hello_world_flow.py
   ENTRYPOINT: hello_world
   FILESYSTEM_EXTRAS: s3fs
   STORAGE: s3-bucket/flow-code-storage
