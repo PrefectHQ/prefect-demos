@@ -9,10 +9,10 @@ on:
 # change as needed
 env:
   DEPLOYMENT_NAME: hello_world_automated_deployment
-  FLOW_FILE: flows/hello_world_flow/hello_world_flow.py
+  FLOW_FILE: hello_world_flow.py
   ENTRYPOINT: hello_world
   FILESYSTEM_EXTRAS: s3fs
-  STORAGE: s3-bucket/flow-code-storage
+  STORAGE: s3/flow-code-storage2
   WORK_QUEUE: local-laptop
   #We add API keys in as a secret in the Github UI
   PREFECT_API_KEY: ${{ secrets.PREFECT_API_KEY }} 
@@ -37,6 +37,12 @@ jobs:
 
       - name: Login to Prefect 
         run: prefect cloud login --key $PREFECT_API_KEY --workspace sales-engineering/development
+      
+      - name: Cd to Flow Directory 
+        run: cd ./flows/hello_world_flow
+
+      - name: Authenticate to AWS 
+        run: aws ls
 
       - name: Build / Apply deployment
         run: |
