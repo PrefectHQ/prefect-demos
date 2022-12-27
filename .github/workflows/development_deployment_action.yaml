@@ -42,7 +42,7 @@ jobs:
         run: cd ./flows/hello_world_flow
 
       - name: Authenticate to AWS 
-        run: aws ls
+        run: aws s3 ls
 
       - name: Build / Apply deployment
         run: |
