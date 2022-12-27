@@ -41,6 +41,13 @@ jobs:
       - name: Cd to Flow Directory 
         run: cd ./flows/hello_world_flow
 
+      - name: Configure AWS Credentials
+        uses: PrefectHQ/prefect-demos
+        with:
+          aws-access-key-id: ${{ secrets.AWS_S3_BUCKET_USER_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_S3_BUCKET_USER_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
       - name: Authenticate to AWS 
         run: aws s3 ls
 
