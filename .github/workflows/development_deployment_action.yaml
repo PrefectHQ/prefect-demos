@@ -42,7 +42,7 @@ jobs:
         run: cd ./flows/hello_world_flow
 
       - name: Configure AWS Credentials
-        uses: PrefectHQ/prefect-demos@v1
+        uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_S3_BUCKET_USER_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_S3_BUCKET_USER_SECRET_ACCESS_KEY }}
