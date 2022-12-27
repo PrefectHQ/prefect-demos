@@ -53,7 +53,7 @@ jobs:
 
       - name: Build / Apply deployment
         run: |
-          prefect deployment build ./$FLOW_FILE:$ENTRYPOINT --name $DEPLOYMENT_NAME --work-queue $WORK_QUEUE --storage-block $STORAGE --output ./my_manifest.yml --apply
+          prefect deployment build ./$FLOW_FILE:$ENTRYPOINT --name $DEPLOYMENT_NAME --work-queue $WORK_QUEUE --storage-block $STORAGE --output ./my_manifest.yaml --apply
 
      
       - name: Output Success
