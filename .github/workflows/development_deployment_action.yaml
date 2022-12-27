@@ -53,9 +53,8 @@ jobs:
 
       - name: Build / Apply deployment
         run: |
-          prefect deployment build ./$FLOW_FILE:$ENTRYPOINT --name $DEPLOYMENT_NAME --storage-block $STORAGE --apply
+          prefect deployment build ./$FLOW_FILE:$ENTRYPOINT --name $DEPLOYMENT_NAME  --work-queue $WORK_QUEUE --storage-block $STORAGE --apply
 
-      # --work-queue $WORK_QUEUE 
-
+     
       - name: Output Success
         run: echo "Successfully built and applied ${{ env.DEPLOYMENT_NAME }} :rocket:" >> $GITHUB_STEP_SUMMARY
