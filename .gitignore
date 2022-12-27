@@ -137,7 +137,7 @@ prefect-dbt-demo/dev_notebooks
 
 **/.ipynb_checkpoints
 
-**.prefectignore
+#**.prefectignore
 **deployment.yaml
 **demo_flow-deployment.yaml
 
