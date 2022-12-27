@@ -55,7 +55,7 @@ jobs:
         run: |
           prefect deployment build ./$FLOW_FILE:$ENTRYPOINT \
             --name $DEPLOYMENT_NAME \
-            --storage-block $STORAGE \
+            --storage-block $STORAGE 
 
       # --work-queue $WORK_QUEUE \ 
       # --apply
