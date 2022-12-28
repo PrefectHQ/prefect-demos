@@ -48,13 +48,8 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_S3_BUCKET_USER_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
 
-      - name: Authenticate to AWS 
-        run: aws s3 ls
-
       - name: Build / Apply deployment
-        run: |
-          prefect deployment build ./$FLOW_FILE:$ENTRYPOINT --name $DEPLOYMENT_NAME --work-queue $WORK_QUEUE --storage-block $STORAGE --apply
-
+        run: prefect deployment build ./$FLOW_FILE:$ENTRYPOINT --name $DEPLOYMENT_NAME --work-queue $WORK_QUEUE --storage-block $STORAGE --apply
      
       - name: Output Success
         run: echo "Successfully built and applied ${{ env.DEPLOYMENT_NAME }} :rocket:" >> $GITHUB_STEP_SUMMARY
