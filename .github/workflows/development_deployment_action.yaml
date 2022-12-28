@@ -35,6 +35,9 @@ jobs:
       - name: Add Flow Dependencies (including Prefect)
         run: pip install -r requirements.txt
 
+      - name: Add s3fs
+        run: pip install s3fs 
+
       - name: Login to Prefect 
         run: prefect cloud login --key $PREFECT_API_KEY --workspace sales-engineering/development
       
