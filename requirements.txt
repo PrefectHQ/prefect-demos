@@ -51,7 +51,7 @@ orjson==3.8.3
 packaging==22.0
 pathspec==0.10.3
 pendulum==2.1.2
-prefect==2.7.4
+prefect>=2.7.4
 prefect-aws==0.2.1
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
