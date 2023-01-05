@@ -19,11 +19,16 @@ def read_in_raw_data():
     csv_contents = s3_raw_data_bucket.read_path("jaffle_shop_customers.csv")
     df = pd.read_csv(StringIO(csv_contents.decode("utf-8")))
 
-    print(df)
+    return df
 
+def get_row_count(df):
+    print(df.shape[0])
 
-@flow
-def main_flow():
+@flow(retries=2, retry_delay_seconds=30)
+def main_flow(
+        start_date: date = date(2020, 2, 1),
+        end_date: date = date.today(),
+):
     read_in_raw_data()
 
 
