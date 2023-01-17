@@ -11,6 +11,10 @@ import os
 import random
 import pandas as pd
 from io import StringIO
+from faker import Faker
+
+fake = Faker()
+
 
 # subflows
 # looping
@@ -30,6 +34,19 @@ def read_csv_to_df(s3_block_raw_data: S3Bucket, object_key):
     df = pd.read_csv(StringIO(csv.decode("utf-8")))
 
     return df
+
+def ingest_raw_customers(sample_size=100):
+    output = [
+        {
+            "id": random.randint(1, sample_size),
+            "first_name": fake.first_name(),
+            "last_name": fake.last_name(),
+        }
+        for x in range(sample_size)
+    ]
+    df = pd.DataFrame(output)
+    df = df.drop_duplicates(subset=["id"])
+    
 
 def main_flow(
         start_date: date = date(2020, 2, 1),

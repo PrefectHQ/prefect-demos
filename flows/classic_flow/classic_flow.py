@@ -138,4 +138,4 @@ def demo_flow(desired_outcome: str = "Fail"):
 
 if __name__ == "__main__":
 
-    run = demo_flow("Success")
+    run = demo_flow("Fail")

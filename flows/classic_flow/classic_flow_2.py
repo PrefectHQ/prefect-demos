@@ -12,12 +12,20 @@ import os
 import random
 import pandas as pd
 from io import StringIO
+from pydantic import BaseModel
+from data_ingestion import ingest_raw_customers
+import time
 
 # subflows
 # looping
 # if statement
 # run_deployment
 # query snowflake (1 simple pre-built task)
+# cyclical logic
+# retries
+
+# cashing
+# Use time.sleep() in a caching task
 
 @task
 def list_s3_objects(s3_block_raw_data: S3Bucket):
@@ -35,40 +43,111 @@ def read_csv_to_df(s3_block_raw_data: S3Bucket, object_key):
     return df
 
 @task
-def check_for_nulls_in_payments(payments_df):
-    if payments_df.isna().sum().sum() > 0:
-        # TODO List Nulls here
-        # TODO create secrete null ingection function
-        return []]
-    else:
-        return []
+def find_nulls_in_df(df):
+    null_counts = df.isna().sum()
+    return null_counts
 
 @task
-def imputation():
-    print('hi')
-    
+def imputation_task(null_count, df):
+    imputed_df = df.fillna('Jane')
+    return imputed_df 
 
-@flow(task_runner=ConcurrentTaskRunner())#retries=2, retry_delay_seconds=30)
+@task
+def historical_raw_integration(historical_df, raw_df):
+    integrated = pd.concat([raw_df, historical_df])
+
+    # Assert Column Format Matches Historical Data
+    assert integrated.shape[1] == historical_df.shape[1]
+
+    return integrated
+
+@task
+def column_detection(imputed_df):
+    imputed_df.columns = ['ID', 'FIRST_NAME', 'LAST_NAME']
+    return imputed_df
+
+@task
+def upload_combined_data(final_df):
+    print('Uploading')
+    return 'Good'
+
+# my pydantic class
+class RiskProfile(BaseModel):
+    nulls: bool = False
+    api_failure: bool = False
+    integration_failure: bool = False
+
+default_risk_profile = RiskProfile(
+    nulls=False, 
+    api_failure=False,
+    integration_failure=False
+    )
+
+@flow
+def load_in_historical_data():
+    # Load in Block to Instantiate Block Object
+    s3_block_historical_data = S3Bucket.load("raw-data-jaffle-shop")
+
+    # First Task
+    s3_objs = list_s3_objects(s3_block_historical_data)
+
+    # Submitting Task 
+    historical_dfs = {}
+    for i in range(len(s3_objs) - 1):
+        historical_dfs.update({
+            s3_objs[i].rstrip('.csv'): 
+            read_csv_to_df.submit(s3_block_historical_data, s3_objs[i])
+            })
+    
+    return historical_dfs
+
+
+@flow(task_runner=ConcurrentTaskRunner())
 def main_flow(
         start_date: date = date(2020, 2, 1),
         end_date: date = date.today(),
-        risk_level: int = 0
+        risk_profile: RiskProfile = default_risk_profile
 ):
-    # Load in Block to Instantiate Block Object
-    s3_block_raw_data = S3Bucket.load("raw-data-jaffle-shop")
 
-    # First Task
-    s3_objs = list_s3_objects(s3_block_raw_data)
+    raw_customer_data = ingest_raw_customers(risk_profile)
 
-    # Submitting Task 
-    dfs = {}
-    for i in range(len(s3_objs)):
-        dfs.update({
-            s3_objs[i].rstrip('.csv'): 
-            read_csv_to_df.submit(s3_block_raw_data, s3_objs[i])
-            })
+    null_counts = find_nulls_in_df(raw_customer_data)
+
+    if null_counts.sum() > 0:
+        new_customer_data = imputation_task(null_counts, raw_customer_data)
+    else:
+        new_customer_data = raw_customer_data
+    
+    # Combine with historical data
+    historical_dfs = load_in_historical_data()
+
+    combined = historical_raw_integration(
+        historical_dfs['jaffle_shop_customer'], 
+        new_customer_data, 
+        return_state=True)
+
+    if combined.is_failed():
+        print('hiiii tay')
+        new_raw = column_detection(new_customer_data)
+    
+        # Retry Combined Task with Fixed Raw File
+        combined = historical_raw_integration(
+            historical_dfs['jaffle_shop_customer'], 
+            new_raw, 
+            return_state=True)
+
+    upload_combined_data(combined)
+
+    print(combined.result().tail())
+
+    print("Done!")
+
 
     
+    
+
+    
+
  
 
 #     ['jaffle_shop_customer', 'jaffle_shop_order', 'stripe_payment']
