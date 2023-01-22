@@ -3,12 +3,12 @@ provider "aws" {
 }
 module "prefect_ecs_agent" {
   # source = "github.com/PrefectHQ/prefect-recipes//devops/infrastructure-as-code/aws/tf-prefect2-ecs-agent"
-  source = "git::https://github.com/PrefectHQ/prefect-recipes//devops/infrastructure-as-code/aws/tf-prefect2-ecs-agent?ref=ecs-service-change"
+  source = "git::https://github.com/PrefectHQ/prefect-recipes//devops/infrastructure-as-code/aws/tf-prefect2-ecs-agent?ref=tf-ecs-task-role"
 
-  vpc_id               = "vpc-0176a93c6464344f9"
-  agent_subnets        = ["subnet-01a7a00f7cf3db089"]
-  agent_queue_name     = "ecs-agent-0"
-  name                 = "taylor_agent_0"
+  vpc_id               = var.vpc_id
+  agent_subnets        = var.agent_subnets
+  agent_queue_name     = "ecs-agent-test-1-17"
+  name                 = "taylor_test_1_17"
   prefect_account_id   = var.prefect_account_id
   prefect_api_key      = var.prefect_api_key
   prefect_workspace_id = var.prefect_workspace_id
