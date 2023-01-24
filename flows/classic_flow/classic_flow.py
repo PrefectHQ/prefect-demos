@@ -1,141 +1,180 @@
 from re import L
-from prefect import task, flow
-from prefect.orion.schemas.states import Completed, Failed
-from prefect.blocks.notifications import SlackWebhook
+from prefect import flow, task, unmapped
 from prefect_aws.s3 import S3Bucket
+from datetime import date, timedelta
+from prefect.orion.schemas.states import Completed, Failed
+from prefect.task_runners import ConcurrentTaskRunner
+from prefect.blocks.notifications import SlackWebhook
 from prefect.tasks import task_input_hash
 from datetime import timedelta
 from prefect import tags
 import os
 import random
+import pandas as pd
+from io import StringIO
+from pydantic import BaseModel
+from data_ingestion import ingest_raw_customers
+import time
+
+# subflows
+# looping
+# if statement
+# run_deployment
+# query snowflake (1 simple pre-built task)
+# cyclical logic
+# retries
+
+# cashing
+# Use time.sleep() in a caching task
+
+@task
+def list_s3_objects(s3_block_raw_data: S3Bucket):
+    obj_dict = s3_block_raw_data.list_objects()
+    objs = [obj_dict[i]["Key"] for i in range(len(obj_dict))]
+
+    return objs
+
+@task
+def read_csv_to_df(s3_block_raw_data: S3Bucket, object_key):
+
+    csv = s3_block_raw_data.read_path(object_key)
+    df = pd.read_csv(StringIO(csv.decode("utf-8")))
+
+    return df
+
+@task
+def find_nulls_in_df(df):
+    null_counts = df.isna().sum()
+    return null_counts
+
+@task
+def imputation_task(null_count, df):
+    imputed_df = df.fillna('Jane')
+    return imputed_df 
+
+@task
+def historical_raw_integration(historical_df, raw_df):
+    integrated = pd.concat([raw_df, historical_df])
+
+    # Assert Column Format Matches Historical Data
+    assert integrated.shape[1] == historical_df.shape[1]
+
+    return integrated
+
+@task
+def column_detection(imputed_df):
+    imputed_df.columns = ['ID', 'FIRST_NAME', 'LAST_NAME']
+    return imputed_df
+
+@task
+def upload_combined_data(final_df):
+    print('Uploading')
+    return 'Good'
+
+# my pydantic class
+class RiskProfile(BaseModel):
+    nulls: bool = False
+    api_failure: bool = False
+    integration_failure: bool = False
+
+default_risk_profile = RiskProfile(
+    nulls=False, 
+    api_failure=False,
+    integration_failure=False
+    )
+
+@flow
+def load_in_historical_data():
+    # Load in Block to Instantiate Block Object
+    s3_block_historical_data = S3Bucket.load("raw-data-jaffle-shop")
+
+    # First Task
+    s3_objs = list_s3_objects(s3_block_historical_data)
+
+    # Submitting Task 
+    historical_dfs = {}
+    for i in range(len(s3_objs) - 1):
+        historical_dfs.update({
+            s3_objs[i].rstrip('.csv'): 
+            read_csv_to_df.submit(s3_block_historical_data, s3_objs[i])
+            })
+    
+    return historical_dfs
 
 
-@task(name="Always Succeeds Task", version=os.getenv("GIT_COMMIT_SHA"))
-def always_succeeds_task(x=1):
-    if x == 1:
-        print("Always Succeeds Task")
-    return "foo"
+@flow(task_runner=ConcurrentTaskRunner())
+def main_flow(
+        start_date: date = date(2020, 2, 1),
+        end_date: date = date.today(),
+        risk_profile: RiskProfile = default_risk_profile
+):
 
+    raw_customer_data = ingest_raw_customers(risk_profile)
 
-@task(
-    name="Depnds on AST",
-)
-def depends_on_ast(ast):
-    if ast == "foo":
-        return "fa"
+    null_counts = find_nulls_in_df(raw_customer_data)
+
+    if null_counts.sum() > 0:
+        new_customer_data = imputation_task(null_counts, raw_customer_data)
     else:
-        return "na?"
+        new_customer_data = raw_customer_data
+    
+    # Combine with historical data
+    historical_dfs = load_in_historical_data()
 
+    combined = historical_raw_integration(
+        historical_dfs['jaffle_shop_customer'], 
+        new_customer_data, 
+        return_state=True)
 
-@task(name="Often Fails Task", retries=20)
-def often_fails_task():
-    """A task that benefits from task retries"""
-    outcome = random.choice(["Fail", "Success", "Fail", "Fail", "Fail"])
-    if outcome == "Fail":
-        raise Exception("Random Choice was Failure")
-    elif outcome == "Success":
-        return "Success!!"
+    if combined.is_failed():
+        print('hiiii tay')
+        new_raw = column_detection(new_customer_data)
+    
+        # Retry Combined Task with Fixed Raw File
+        combined = historical_raw_integration(
+            historical_dfs['jaffle_shop_customer'], 
+            new_raw, 
+            return_state=True)
 
+    upload_combined_data(combined)
 
-@task(
-    name="Very Large Computation",
-    cache_key_fn=task_input_hash,
-    cache_expiration=timedelta(days=30),
-)
-def large_computation(small_int):
-    """A task that benefits from"""
-    print("Done large computation!")
-    return small_int * 5
-
-
-@task(
-    name="Follows Large Computation",
-)
-def follows_large_computation(result_from_lc, succeed=True):
-    if succeed == True:
-        output = result_from_lc / 2
-        return output
-    else:
-        raise Exception("I am bad task")
-
-
-@task(
-    name="Second After Large Computation",
-)
-def second_after_large_computation(result_from_flc):
-    output = result_from_flc
-    return output
-
-
-@task(name="Looping Task")
-def looping_task():
-    print("This is looping")
-
-
-@task(name="Task with Tag", tags=["Specific_Tag"])
-def task_with_tag():
-    """A task that is called by virtue of its tag."""
-    print("This is a task with a Specific Tag")
-
-
-@task(name="Always Fails Task")
-def always_fails_task():
-    raise Exception("I am bad task")
-
-
-@flow(name="My Sub Flow")
-def sub_flow():
-    always_succeeds_task()
-    print("Sub Flow")
-
-
-@flow(
-    name="My Demo Flow",
-    persist_result=True,
-    result_storage=S3Bucket.load("result-storage"),
-)
-def demo_flow(desired_outcome: str = "Fail"):
-
-    ast = always_succeeds_task.submit()
-
-    inner_loop_dep = depends_on_ast.submit(ast)
-
-    ast2 = always_succeeds_task.submit(inner_loop_dep)
-
-    if ast.get_state().type != "COMPLETED":
-        sub_flow()
-
-    often_fails_task.submit()
-
-    task_result_0 = large_computation.submit(5)
-
-    if desired_outcome == "Fail":
-        task_result_1 = follows_large_computation.submit(task_result_0, False)
-
-    else:
-        task_result_1 = follows_large_computation.submit(task_result_0)
-
-    second_after_large_computation.submit(task_result_1)
-
-    if task_result_1.get_state().type != "COMPLETED":
-        print("-- Completed! --")
-
-        slack_webhook_block = SlackWebhook.load("general-notifications")
-        slack_webhook_block.notify("Hello from Prefect! Your task failed!! :(")
-
-    [looping_task() for i in range(2)]
-
-    with tags("Specific_Tag"):
-        task_with_tag.submit()
-
-    if desired_outcome == "Fail":
-        always_fails_task.submit()
-
-    always_succeeds_task.submit()
+    print(combined.result().tail())
 
     print("Done!")
 
 
-if __name__ == "__main__":
+    
+    
 
-    run = demo_flow("Fail")
+    
+
+ 
+
+#     ['jaffle_shop_customer', 'jaffle_shop_order', 'stripe_payment']
+
+#     #   Customer
+# ---  ------      --------------  ----- 
+#  0   ID          100 non-null    int64 
+#  1   FIRST_NAME  100 non-null    object
+#  2   LAST_NAME   100 non-null    object
+
+#     #   Orders
+# ---  ------      --------------  ----- 
+#  0   ID          99 non-null     int64 
+#  1   USER_ID     99 non-null     int64 
+#  2   ORDER_DATE  99 non-null     object
+#  3   STATUS      99 non-null     object
+
+#     #   Payments   
+# ---  ------         --------------  ----- 
+#  0   ID             120 non-null    int64 
+#  1   ORDERID        120 non-null    int64 
+#  2   PAYMENTMETHOD  120 non-null    object
+#  3   STATUS         120 non-null    object
+#  4   AMOUNT         120 non-null    int64 
+#  5   CREATED        120 non-null    object
+
+ #   Column      Non-Null Count  Dtype 
+
+if __name__ == "__main__":
+    main_flow()
