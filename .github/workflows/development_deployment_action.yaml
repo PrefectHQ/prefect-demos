@@ -9,11 +9,10 @@ on:
 # change as needed
 env:
   DEPLOYMENT_NAME: hello_world_automated_deployment
-  FLOW_FILE: hello_world_flow.py
+  FLOW_FILE: flows/hello_world_flow/hello_world_flow.py
   ENTRYPOINT: hello_world
   FILESYSTEM_EXTRAS: s3fs
-  #INFRA:
-  STORAGE: s3-bucket/flow-code-storage
+  STORAGE: s3/flow-code-storage2
   WORK_QUEUE: local-laptop
   #We add API keys in as a secret in the Github UI
   PREFECT_API_KEY: ${{ secrets.PREFECT_API_KEY }} 
@@ -36,17 +35,26 @@ jobs:
       - name: Add Flow Dependencies (including Prefect)
         run: pip install -r requirements.txt
 
-      - name: Select Workspace
-        run: prefect cloud workspace set --workspace sales-engineering/development
+      - name: Login to Prefect 
+        run: prefect cloud login --key $PREFECT_API_KEY --workspace sales-engineering/development
+      
+      - name: Cd to Flow Directory 
+        run: cd ./flows/hello_world_flow
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_S3_BUCKET_USER_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_S3_BUCKET_USER_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
 
       - name: Build / Apply deployment
         run: |
-          prefect deployment build ./$FLOW_FILE:$ENTRYPOINT \
-            --name $DEPLOYMENT_NAME \
-            --infra-block $INFRA \
-            --storage-block $STORAGE \
-            --work-queue $WORK_QUEUE \ 
-            --apply
-
+              prefect deployment build ./$FLOW_FILE:$ENTRYPOINT \
+              --name $DEPLOYMENT_NAME \
+              --work-queue $WORK_QUEUE \
+              --storage-block $STORAGE \
+              --apply
+     
       - name: Output Success
         run: echo "Successfully built and applied ${{ env.DEPLOYMENT_NAME }} :rocket:" >> $GITHUB_STEP_SUMMARY
