@@ -91,7 +91,7 @@ def sub_flow():
 
 @flow(
     name="My Demo Flow",
-    persist_result=True,
+    persist_result=True, # Default is True
     result_storage=S3Bucket.load("result-storage"),
 )
 def demo_flow(desired_outcome: str = "Fail"):
