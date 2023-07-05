@@ -118,7 +118,7 @@ def demo_flow(desired_outcome: str = "Fail"):
     if task_result_1.get_state().type != "COMPLETED":
         print("-- Completed! --")
 
-        slack_webhook_block = SlackWebhook.load("slack-notifications")
+        slack_webhook_block = SlackWebhook.load("demo-slack-notification")
         slack_webhook_block.notify("Hello from Prefect! Your task failed!! :(")
 
     [looping_task() for i in range(2)]
