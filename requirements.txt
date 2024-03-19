@@ -1,2 +1,4 @@
 prefect
 prefect_aws
+prefect_dbt
+prefect_snowflake
