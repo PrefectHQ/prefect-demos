@@ -19,6 +19,7 @@ datalake_listener_deployment = datalake_listener.to_deployment(
 
 deploy(
     datalake_listener_deployment,
+    work_pool_name="<some-work-pool>",
     image=DeploymentImage(
         name="<some-stuff-here>/datalake-listener",
         tag="latest",
