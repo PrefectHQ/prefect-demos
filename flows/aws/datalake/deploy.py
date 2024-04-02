@@ -15,7 +15,6 @@ datalake_listener_deployment = datalake_listener.to_deployment(
             parameters = {"bucket": "{{ event.payload.data.bucket.name }}", "key": "{{ event.payload.data.object.key }}"},
         )
     ],
-    image="prefecthq/prefect:latest",
 )
 
 deploy(
