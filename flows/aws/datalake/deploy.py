@@ -1,8 +1,14 @@
+import os
+
 from prefect import deploy
 from prefect.deployments import DeploymentImage
 from prefect.events.schemas import DeploymentTrigger
 
+from prefect.deployments.runner import DeploymentImage 
+from prefect.client.schemas.schedules import CronSchedule
+
 from datalake_listener import datalake_listener
+from datalake_s3_nasa import fetch_neo_by_date
 
 datalake_listener_deployment = datalake_listener.to_deployment(
     name="datalake_listener",
@@ -17,12 +23,21 @@ datalake_listener_deployment = datalake_listener.to_deployment(
     ],
 )
 
+fetch_neo_by_date_deployment = fetch_neo_by_date.to_deployment(
+    name="s3_nasa_fetch",
+    schedule=CronSchedule(cron="0 10 * * *"),
+)
+
+ecr_repo = os.getenv("ECR_REPO")
+
+
 deploy(
     datalake_listener_deployment,
-    work_pool_name="<some-work-pool>",
+    fetch_neo_by_date_deployment,
     image=DeploymentImage(
-        name="<some-stuff-here>/datalake-listener",
+        name=f"{ecr_repo}/datalake-listener",
         tag="latest",
         dockerfile="Dockerfile",
-    )
+    ),
+    work_pool_name="Demo-ECS"
 )
