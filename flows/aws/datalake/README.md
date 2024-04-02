@@ -16,20 +16,21 @@ This project automates the ingestion and processing of Near Earth Objects (NEO) 
 
 1. Installation setup
 
-    1a. Clone this repository:
+    a. Clone this repository:
+
     ```bash
     git clone https://github.com/PrefectHQ/prefect-demos.git
     cd prefect-demos/flows/aws/datalake
-```
+    ```
 
-1b. Set up a virtual environment (optional but recommended)
+    b. Set up a virtual environment (optional but recommended)
 
     ```bash
     python -m venv venv
     source venv/bin/activate  # On Windows use `venv\Scripts\activate`
     ```
 
-1c. Install dependencies
+    c. Install dependencies
     ```bash
     pip install -r requirements.txt
     ```
