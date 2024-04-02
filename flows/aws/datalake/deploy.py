@@ -1,4 +1,5 @@
 from prefect import deploy
+from prefect.deployments import DeploymentImage
 from prefect.events.schemas import DeploymentTrigger
 
 from datalake_listener import datalake_listener
@@ -18,5 +19,10 @@ datalake_listener_deployment = datalake_listener.to_deployment(
 )
 
 deploy(
-    datalake_listener_deployment
+    datalake_listener_deployment,
+    image=DeploymentImage(
+        name="<some-stuff-here>/datalake-listener",
+        tag="latest",
+        dockerfile="Dockerfile",
+    )
 )
