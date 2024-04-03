@@ -1,4 +1,4 @@
-prefect
+prefect>=2.16.5
 prefect_aws
 prefect_dbt
 prefect_snowflake
