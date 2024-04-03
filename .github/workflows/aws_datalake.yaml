@@ -1,0 +1,50 @@
+name: Build image and deploy Prefect flow - Project 1
+
+env:
+  PROJECT_NAME: flows/aws/datalake
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "flows/aws/datalake/**"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+      name: Deploy AWS datalake flows
+      runs-on: ubuntu-latest
+      env:
+
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+
+        - name: Log in to ECR
+          uses: docker/login-action@v3
+          with:
+            registry: ${{ secrets.AWS_ACCOUNT_NUMBER }}.dkr.ecr.us-east-2.amazonaws.com
+            username: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            password: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+        - name: Get commit hash
+          id: get-commit-hash
+          run: echo "COMMIT_HASH=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+        - name: Setup Python
+          uses: actions/setup-python@v5
+          with:
+            python-version: "3.11"
+            cache: "pip"
+
+        - name: Prefect Deploy
+          env:
+            GITHUB_SHA: ${{ steps.get-commit-hash.outputs.COMMIT_HASH }}
+            PREFECT_API_KEY: ${{ secrets.PREFECT_API_KEY }}
+          run: |
+            cd flows/aws/datalake
+            pip install -r requirements-ci.txt
+            prefect cloud workspace set -w sales-engineering/se-datalake
+            python deploy.py
+            

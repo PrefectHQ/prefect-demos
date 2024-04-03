@@ -29,6 +29,7 @@ fetch_neo_by_date_deployment = fetch_neo_by_date.to_deployment(
 )
 
 ecr_repo = os.getenv("ECR_REPO")
+image_tag = os.getenv("GITHUB_SHA")
 
 
 deploy(
@@ -36,7 +37,7 @@ deploy(
     fetch_neo_by_date_deployment,
     image=DeploymentImage(
         name=f"{ecr_repo}/datalake-listener",
-        tag="latest",
+        tag=image_tag,
         dockerfile="Dockerfile",
     ),
     work_pool_name="Demo-ECS"
