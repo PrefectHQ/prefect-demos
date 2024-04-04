@@ -36,7 +36,7 @@ deploy(
     datalake_listener_deployment,
     fetch_neo_by_date_deployment,
     image=DeploymentImage(
-        name=f"{ecr_repo}/datalake-listener",
+        name=f"{ecr_repo}/datalake-demo",
         tag=image_tag,
         dockerfile="Dockerfile",
     ),
