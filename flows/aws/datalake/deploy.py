@@ -10,21 +10,7 @@ from prefect.client.schemas.schedules import CronSchedule
 from datalake_listener import datalake_listener
 from datalake_s3_nasa import fetch_neo_by_date
 
-ecr_repo = os.getenv("ECR_REPO")
-image_tag = os.getenv("GITHUB_SHA")
-
-fetch_neo_by_date.deploy(
-    name="s3_nasa_fetch",
-    schedule=CronSchedule(cron="0 10 * * *"),
-    image=DeploymentImage(
-        name=f"{ecr_repo}/datalake-demo",
-        tag=image_tag,
-        dockerfile="Dockerfile",
-    ),
-    work_pool_name="Demo-ECS"
-)
-
-datalake_listener.deploy(
+datalake_listener_deployment = datalake_listener.to_deployment(
     name="datalake_listener",
     triggers=[
         DeploymentEventTrigger(
@@ -35,7 +21,25 @@ datalake_listener.deploy(
             parameters = {"bucket": "{{ event.payload.data.bucket.name }}", "key": "{{ event.payload.data.object.key }}"},
         )
     ],
+)
+
+fetch_neo_by_date_deployment = fetch_neo_by_date.to_deployment(
+    name="s3_nasa_fetch",
+    schedule=CronSchedule(cron="0 10 * * *"),
+)
+
+ecr_repo = os.getenv("ECR_REPO")
+image_tag = os.getenv("GITHUB_SHA")
+
+
+deploy(
+    datalake_listener_deployment,
+    fetch_neo_by_date_deployment,
     build=False,
-    image=f"{ecr_repo}/datalake-demo:{image_tag}",
+    image=DeploymentImage(
+        name=f"{ecr_repo}/datalake-demo",
+        tag=image_tag,
+        dockerfile="Dockerfile",
+    ),
     work_pool_name="Demo-ECS"
 )
