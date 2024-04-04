@@ -44,7 +44,9 @@ def datalake_listener(bucket: str, key: str):
 
     near_earth_objects_by_date = json.loads(s3_bucket_block.read_path(key))
 
-    date = key[:10]
+    file_name = key.split("/")[-1]
+
+    date = file_name[:10]
     near_eath_objects = near_earth_objects_by_date["near_earth_objects"][date]
 
     hazardous_objects = [obj for obj in near_eath_objects if obj["is_potentially_hazardous_asteroid"]]
