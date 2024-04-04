@@ -1,0 +1,3 @@
+prefect-aws
+typer<0.10.0
+uvicorn<0.29.0
