@@ -18,8 +18,7 @@ def get_time_frame(n_days: int):
         return today, end_date
 
 #Retrieve a list of asteroids based on their closest approach date to Earth.
-#Caching is used here to avoid hitting the API if the same date range is used.
-@task(cache_key_fn=task_input_hash, retries=5)
+@task(retries=5)
 def neo_feed_request(start_date, end_date):
     secret_block = Secret.load("nasa-api-key")
     nasa_api_key = secret_block.get()
