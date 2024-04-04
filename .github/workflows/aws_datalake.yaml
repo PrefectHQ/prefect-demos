@@ -41,7 +41,7 @@ jobs:
           env:
             GITHUB_SHA: ${{ steps.get-commit-hash.outputs.COMMIT_HASH }}
             PREFECT_API_KEY: ${{ secrets.PREFECT_API_KEY }}
-            ECR_REPO: ${{ secrets.ERC_REPO }}
+            ECR_REPO: ${{ secrets.ECR_REPO }}
           run: |
             cd flows/aws/datalake
             pip install -r requirements-ci.txt
