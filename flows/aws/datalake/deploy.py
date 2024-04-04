@@ -2,7 +2,7 @@ import os
 
 from prefect import deploy
 from prefect.deployments import DeploymentImage
-from prefect.events.schemas import DeploymentTrigger
+from prefect.events import DeploymentEventTrigger
 
 from prefect.deployments.runner import DeploymentImage 
 from prefect.client.schemas.schedules import CronSchedule
@@ -13,7 +13,7 @@ from datalake_s3_nasa import fetch_neo_by_date
 datalake_listener_deployment = datalake_listener.to_deployment(
     name="datalake_listener",
     triggers=[
-        DeploymentTrigger(
+        DeploymentEventTrigger(
             # several DeploymentTrigger fields have defaults and are omitted
             name = "S3 Object Created",
             match = {"prefect.resource.id": "aws.s3.*"},
