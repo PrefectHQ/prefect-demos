@@ -15,7 +15,6 @@ jobs:
   deploy:
       name: Deploy AWS datalake flows
       runs-on: ubuntu-latest
-      env:
 
       steps:
         - name: Checkout
