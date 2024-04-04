@@ -35,7 +35,6 @@ image_tag = os.getenv("GITHUB_SHA")
 deploy(
     datalake_listener_deployment,
     fetch_neo_by_date_deployment,
-    build=False,
     image=DeploymentImage(
         name=f"{ecr_repo}/datalake-demo",
         tag=image_tag,
