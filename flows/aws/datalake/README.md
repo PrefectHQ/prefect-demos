@@ -4,6 +4,8 @@
 
 This project automates the ingestion and processing of Near Earth Objects (NEO) data from NASA's API into an AWS S3 datalake using Prefect for orchestration. It comprises two main components: a data fetcher that retrieves and stores NEO data in S3, and a listener that processes this data upon arrival.
 
+![image](/img/data_lake_diagram.png)
+
 ## Components
 
 - **deploy.py**: Orchestrates the deployment of Prefect flows to AWS
