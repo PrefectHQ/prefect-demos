@@ -5,7 +5,6 @@ import time
 
 
 class SnowflakeConnection(Block):
-
     """
     Interact with a Snowflake schema using Pandas.
     Requires pandas and snowflake-sqlalchemy packages to be installed.
