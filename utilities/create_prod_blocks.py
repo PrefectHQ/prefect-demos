@@ -1,9 +1,9 @@
-from prefect_aws import AwsCredentials
-from prefect_aws.s3 import S3Bucket
-from prefect.blocks.notifications import SlackWebhook
+import os
 
 from dotenv import load_dotenv
-import os
+from prefect.blocks.notifications import SlackWebhook
+from prefect_aws import AwsCredentials
+from prefect_aws.s3 import S3Bucket
 
 # -- env vars --
 load_dotenv()

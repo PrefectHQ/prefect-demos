@@ -1,21 +1,17 @@
-from prefect import task, flow
-from prefect import flow, get_run_logger
-from prefect_snowflake.database import SnowflakeConnector
-from prefect_snowflake.database import snowflake_query
+from prefect import flow, get_run_logger, task
 from prefect.blocks.notifications import SlackWebhook
-
-
 from prefect_dbt.cloud import DbtCloudCredentials
-from prefect_dbt.cloud.runs import DbtCloudJobRunFailed
 from prefect_dbt.cloud.jobs import (
     trigger_dbt_cloud_job_run_and_wait_for_completion as trigger_dbt_cloud_job_run_and_wait,
 )
+from prefect_dbt.cloud.runs import DbtCloudJobRunFailed
+from prefect_snowflake.database import SnowflakeConnector, snowflake_query
 
 
 @task(name="Trigger Raw Extract")
 def trigger_airbyte_sync(uuid: str) -> int:
     """Think airbyte or fivetran jobs.
-    Based on the size of the data extract a time value in seconds is retuned.
+    Based on the size of the data extract a time value in seconds is returned.
     """
     t_process_per_row = 0.01
     row_count = 3e4
@@ -42,7 +38,6 @@ def great_expectations_check(fail_on=None):
 
 @flow(name="My DBT Flow")
 def dbt_flow(fail_on: str = None):
-
     logger = get_run_logger()
 
     timeout = trigger_airbyte_sync(uuid="1234-5678-9012-3456")
@@ -57,9 +52,7 @@ def dbt_flow(fail_on: str = None):
 
     if fail_on == "dbt_job":
         try:
-            run_result_c = trigger_dbt_cloud_job_run_and_wait.with_options(
-                name="DBT Run C"
-            )(
+            trigger_dbt_cloud_job_run_and_wait.with_options(name="DBT Run C")(
                 dbt_cloud_credentials=DbtCloudCredentials.load("dbt-creds"),
                 job_id=142919,
                 max_wait_seconds=timeout,

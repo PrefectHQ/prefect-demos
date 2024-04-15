@@ -1,12 +1,10 @@
-from prefect.input import RunInput
-from prefect import get_run_logger
-from prefect.blocks.system import JSON
-from prefect import task, flow, get_run_logger, pause_flow_run
-from pydantic import Field
-from prefect.artifacts import create_table_artifact
-import requests
 import marvin_extension as ai_functions
-
+import requests
+from prefect import flow, get_run_logger, pause_flow_run, task
+from prefect.artifacts import create_table_artifact
+from prefect.blocks.system import JSON
+from prefect.input import RunInput
+from pydantic import Field
 
 URL = "https://randomuser.me/api/"
 
@@ -75,7 +73,6 @@ def user_input_remove_features(url: str):
 
 @flow(name="Create Artifact")
 def create_artifact():
-
     features = JSON.load("all-users-json").value
     description_md = (
         "### Features available:\n"
@@ -89,7 +86,7 @@ def create_artifact():
             description=description_md, create_artifact=False
         )
     )
-    if create_artifact_input.create_artifact == True:
+    if create_artifact_input.create_artifact:
         logger.info("Report approved! Creating artifact...")
         create_table_artifact(
             key="table-of-users", table=JSON.load("all-users-json").value

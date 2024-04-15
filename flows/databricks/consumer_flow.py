@@ -1,9 +1,9 @@
-from prefect import task, flow, get_run_logger
-from prefect.deployments import run_deployment
-from prefect_databricks.jobs import jobs_create
-from prefect_databricks import DatabricksCredentials
-from prefect_shell import shell_run_command
 import random
+
+from prefect import flow, get_run_logger, task
+
+# from prefect_databricks import DatabricksCredentials
+from prefect_shell import shell_run_command
 
 # Deployments, Shell Task, Idempotency
 
@@ -29,12 +29,12 @@ def get_size_change(unprocessed_block_count: int, current_databrics_resouce: str
     logger = get_run_logger()
     if unprocessed_block_count < 50 and current_databrics_resouce != "small":
         logger.info(
-            f"SIZE CHANGE NEEDED: Changing to a SMALLER resource to accomodate {unprocessed_block_count} unprocessed blocks."
+            f"SIZE CHANGE NEEDED: Changing to a SMALLER resource to accommodate {unprocessed_block_count} unprocessed blocks."
         )
         return "small"
     elif unprocessed_block_count >= 50 and current_databrics_resouce != "large":
         logger.info(
-            f"SIZE CHANGE NEEDED: Changing to a LARGER resource to accomodate {unprocessed_block_count} unprocessed blocks."
+            f"SIZE CHANGE NEEDED: Changing to a LARGER resource to accommodate {unprocessed_block_count} unprocessed blocks."
         )
         return "large"
     else:
@@ -46,7 +46,7 @@ def get_size_change(unprocessed_block_count: int, current_databrics_resouce: str
 
 @task
 def launch_databricks_job():
-    databricks_creds = DatabricksCredentials.load("my-databricks-creds")
+    # databricks_creds = DatabricksCredentials.load("my-databricks-creds")
     logger = get_run_logger()
     logger.info("databricks_job initiated")
 
@@ -56,11 +56,11 @@ def launch_databricks_job():
 def scale_to(size_change):  # prepare job
     logger = get_run_logger()
     logger.info(f"Compiler: Compile Job for Size Change {size_change}")
-    logger.info(f"Compiler: Job Compiled")
+    logger.info("Compiler: Job Compiled")
     shell_run_command(command="echo HI")  # "git clone {repo}")
     shell_run_command(command="echo BYE")  # "cd /repo && gradle build .")
     launch_databricks_job()
-    logger.info(f"Scale To: Databrics Resource Size Adjusted!")
+    logger.info("Scale To: Databrics Resource Size Adjusted!")
 
     # jobs_create(
     #     DatabricksCredentials.load("my-databricks-creds"),
