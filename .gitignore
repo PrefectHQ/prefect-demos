@@ -129,6 +129,9 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# pre-commit artifacts
+.ruff_cache/
+
 **.DS_Store
 
 prefect-dbt-demo/raw_baseball_data
