@@ -140,7 +140,7 @@ def upload_to_snowflake(results):
     )
     if create_artifact_input.create_artifact == True:
         logger.info("Uploading to snowflake...")
-        with SnowflakeConnector.load("snowflake_table") as conn:
+        with SnowflakeConnector.load("snowflake-table") as conn:
             conn.execute(
                 "CREATE TABLE IF NOT EXISTS customers (name varchar, address varchar);"
             )

@@ -13,6 +13,27 @@ Interactive Workflow Demo is designed to guide you through the process of settin
 - **Task Management**: Understand how to define, organize, and manage tasks within Prefect to create comprehensive data pipelines.
 - **Visualization**: Explore how to use Prefect's UI for monitoring and visualizing workflow execution.
 
+## Understanding the Workflow
+The demo includes detailed comments explaining each step of the workflow and how it integrates with Prefect's features. Pay special attention to the use of blocks for reusable logic and artifacts for visualizing workflow outputs.
+
+#### Fetching Data
+Fetches raw user data from the "https://randomuser.me/api/" and logs the response. This is a retry-enabled task in case of request failures.
+
+#### Cleaning Data
+Processes the raw data to retain only specified user features, which can be customized at runtime.
+
+#### User Input for Feature Selection
+Interactively allows a user to select which features to keep from the fetched data, defaulting to removing several including 'name', 'email', etc.
+
+#### Creating Artifacts
+Optionally creates a table artifact from the cleaned data if the user approves.
+
+#### Creating User Names
+Processes a specified number of user entries from the fetched data, based on interactive user input on the number of users to generate.
+
+#### Uploading to Snowflake
+If the user approves, the cleaned data can be uploaded to a Snowflake database using provided Snowflake credentials.
+
 ## Getting Started
 
 ### Prerequisites
@@ -61,27 +82,6 @@ pip install -r requirements.txt
 python interactive-workflows.py
 ```
 3. **Follow the interactive prompts to navigate through the workflow.**
-
-### Understanding the Workflow
-The demo includes detailed comments explaining each step of the workflow and how it integrates with Prefect's features. Pay special attention to the use of blocks for reusable logic and artifacts for visualizing workflow outputs.
-
-#### Fetching Data
-Fetches raw user data from the "https://randomuser.me/api/" and logs the response. This is a retry-enabled task in case of request failures.
-
-#### Cleaning Data
-Processes the raw data to retain only specified user features, which can be customized at runtime.
-
-#### User Input for Feature Selection
-Interactively allows a user to select which features to keep from the fetched data, defaulting to removing several including 'name', 'email', etc.
-
-#### Creating Artifacts
-Optionally creates a table artifact from the cleaned data if the user approves.
-
-#### Creating User Names
-Processes a specified number of user entries from the fetched data, based on interactive user input on the number of users to generate.
-
-#### Uploading to Snowflake
-If the user approves, the cleaned data can be uploaded to a Snowflake database using provided Snowflake credentials.
 
 ### Important Notes
 - The script includes exception handling to manage approvals and data integrity.
