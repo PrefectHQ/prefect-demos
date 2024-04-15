@@ -1,5 +1,5 @@
 """A simple flow that says hello"""
-from prefect import flow, task, tags, get_run_logger
+from prefect import flow, get_run_logger, tags, task
 
 
 @task

@@ -33,7 +33,7 @@ We have broken down our flows into digestible one-off examples that can be easil
 ### Dask
 - [partition_example.py](flows/simple_flows/partition_examples.py)
 
-    *Demostrates flexibility in deployment strategies with parallel and asynchronous data ingestion tasks for customers, payments, and orders within specified date ranges, utilizing Prefect with optional Dask for parallel execution
+    *Demonstrates flexibility in deployment strategies with parallel and asynchronous data ingestion tasks for customers, payments, and orders within specified date ranges, utilizing Prefect with optional Dask for parallel execution
 
 ### Databricks
 - [consumer_flow.py](flows/simple_flows/consumer_flow.py)

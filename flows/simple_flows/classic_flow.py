@@ -1,13 +1,11 @@
-from re import L
-from prefect import task, flow
-from prefect.orion.schemas.states import Completed, Failed
-from prefect.blocks.notifications import SlackWebhook
-from prefect_aws.s3 import S3Bucket
-from prefect.tasks import task_input_hash
-from datetime import timedelta
-from prefect import tags
 import os
 import random
+from datetime import timedelta
+
+from prefect import flow, tags, task
+from prefect.blocks.notifications import SlackWebhook
+from prefect.tasks import task_input_hash
+from prefect_aws.s3 import S3Bucket
 
 
 @task(name="Always Succeeds Task", version=os.getenv("GIT_COMMIT_SHA"))
@@ -18,7 +16,7 @@ def always_succeeds_task(x=1):
 
 
 @task(
-    name="Depnds on AST",
+    name="Depends on AST",
 )
 def depends_on_ast(ast):
     if ast == "foo":
@@ -52,7 +50,7 @@ def large_computation(small_int):
     name="Follows Large Computation",
 )
 def follows_large_computation(result_from_lc, succeed=True):
-    if succeed == True:
+    if succeed:
         output = result_from_lc / 2
         return output
     else:
@@ -91,16 +89,15 @@ def sub_flow():
 
 @flow(
     name="My Demo Flow",
-    persist_result=True, # Default is True
+    persist_result=True,  # Default is True
     result_storage=S3Bucket.load("result-storage"),
 )
 def demo_flow(desired_outcome: str = "Fail"):
-
     ast = always_succeeds_task.submit()
 
     inner_loop_dep = depends_on_ast.submit(ast)
 
-    ast2 = always_succeeds_task.submit(inner_loop_dep)
+    always_succeeds_task.submit(inner_loop_dep)
 
     if ast.get_state().type != "COMPLETED":
         sub_flow()
@@ -137,5 +134,4 @@ def demo_flow(desired_outcome: str = "Fail"):
 
 
 if __name__ == "__main__":
-
     run = demo_flow("Success")

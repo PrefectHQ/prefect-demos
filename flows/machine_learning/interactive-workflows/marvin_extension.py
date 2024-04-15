@@ -1,12 +1,9 @@
 import marvin
-from prefect.blocks.system import Secret
-from prefect import flow, task, get_run_logger, pause_flow_run
+from prefect import flow, get_run_logger, pause_flow_run
+from prefect.blocks.system import JSON, Secret
 from prefect.input import RunInput
-from prefect.blocks.system import JSON
 
-DEFAULT_EXTRACT_QUERY = (
-    "Group by location and count the number of users in each location." # Create a table of a users name, location, coordinates, and continent the user is located
-)
+DEFAULT_EXTRACT_QUERY = "Group by location and count the number of users in each location."  # Create a table of a users name, location, coordinates, and continent the user is located
 
 
 class InputQuery(RunInput):
@@ -26,7 +23,7 @@ def extract_information():
     user_input = pause_flow_run(
         wait_for_input=InputQuery.with_initial_data(
             description=description_md,
-            input_instructions=DEFAULT_EXTRACT_QUERY,  
+            input_instructions=DEFAULT_EXTRACT_QUERY,
         )
     )
 

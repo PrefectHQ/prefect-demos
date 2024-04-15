@@ -1,9 +1,8 @@
-from datetime import timedelta
-from prefect import flow, task, get_run_logger
+import pandas as pd
+import requests
+from prefect import flow, get_run_logger, task
 from prefect.tasks import task_input_hash
 from prefect_aws.s3 import S3Bucket
-import requests
-import pandas as pd
 
 
 @task(

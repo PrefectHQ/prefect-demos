@@ -1,9 +1,8 @@
 """A flow for efficiently fetching the weather in multiple locations"""
 import httpx
-from prefect import flow, task, get_run_logger
+from prefect import flow, get_run_logger, task
 from prefect.tasks import task_input_hash
 from prefect_aws.s3 import S3Bucket
-
 
 # TODO: use a Pydantic class
 # TODO: fill in coordinates
@@ -27,9 +26,9 @@ def fetch_temperature_for_coordinates(latitude: float, longitude: float):
     resp = httpx.get(
         "https://api.open-meteo.com/v1/forecast/",
         params={
-            "latitude":latitude,
-            "longitude":longitude,
-            "hourly": "temperature_2m"
+            "latitude": latitude,
+            "longitude": longitude,
+            "hourly": "temperature_2m",
         },
     )
     temperature = float(resp.json()["hourly"]["temperature_2m"][0])
