@@ -22,6 +22,14 @@ Before starting, ensure you have the following installed:
 - Prefect
 - Any other dependencies listed in `requirements.txt`.
 
+### Dependencies
+
+- `requests`: For making HTTP requests to fetch data.
+- `prefect`: For workflow management and logging.
+- `pydantic`: For data validation.
+- `marvin_extension`: Custom library for additional functions.
+- `prefect_snowflake`: For Snowflake database interactions.
+
 ### Installation
 
 1. Clone this repository:
@@ -56,6 +64,29 @@ python interactive-workflows.py
 
 ### Understanding the Workflow
 The demo includes detailed comments explaining each step of the workflow and how it integrates with Prefect's features. Pay special attention to the use of blocks for reusable logic and artifacts for visualizing workflow outputs.
+
+#### Fetching Data
+Fetches raw user data from the "https://randomuser.me/api/" and logs the response. This is a retry-enabled task in case of request failures.
+
+#### Cleaning Data
+Processes the raw data to retain only specified user features, which can be customized at runtime.
+
+#### User Input for Feature Selection
+Interactively allows a user to select which features to keep from the fetched data, defaulting to removing several including 'name', 'email', etc.
+
+#### Creating Artifacts
+Optionally creates a table artifact from the cleaned data if the user approves.
+
+#### Creating User Names
+Processes a specified number of user entries from the fetched data, based on interactive user input on the number of users to generate.
+
+#### Uploading to Snowflake
+If the user approves, the cleaned data can be uploaded to a Snowflake database using provided Snowflake credentials.
+
+### Important Notes
+- The script includes exception handling to manage approvals and data integrity.
+- Ensure your API limits and Snowflake usage are in accordance with your operational policies and capacity.
+For further details, refer to the script comments and Prefect documentation.
 
 ### Contributing
 We welcome contributions to improve this demo! Please feel free to fork the repository, make your changes, and submit a pull request. Whether it's adding new features, fixing bugs, or improving the documentation, your contributions are highly appreciated.

@@ -5,8 +5,8 @@ from prefect.input import RunInput
 from prefect.blocks.system import JSON
 
 DEFAULT_EXTRACT_QUERY = (
-    "Group by location and count the number of users in each location." # Create a table of a users name, location, coordinates, and continent the user is located
-)
+    "Create a table with name and location as two columns" # Create a table of a users name, location, coordinates, and continent the user is located
+) # Group by location and count the number of users in each location.
 
 
 class InputQuery(RunInput):

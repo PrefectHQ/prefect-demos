@@ -6,6 +6,7 @@ from pydantic import Field
 from prefect.artifacts import create_table_artifact
 import requests
 import marvin_extension as ai_functions
+from prefect_snowflake.database import SnowflakeConnector
 
 
 URL = "https://randomuser.me/api/"
@@ -25,8 +26,8 @@ DEFAULT_FEATURES_TO_DROP = [
 ]
 
 
-class CreateArtifact(RunInput):
-    create_artifact: bool = Field(description="Would you like to create an artifact?")
+class CreateArtifactOrSnowflake(RunInput):
+    create_artifact: bool = Field(description="Would you like to approve?")
 
 
 class CleanedInput(RunInput):
@@ -85,7 +86,7 @@ def create_artifact():
 
     logger = get_run_logger()
     create_artifact_input = pause_flow_run(
-        wait_for_input=CreateArtifact.with_initial_data(
+        wait_for_input=CreateArtifactOrSnowflake.with_initial_data(
             description=description_md, create_artifact=False
         )
     )
@@ -123,7 +124,36 @@ def create_names():
     return df
 
 
+@flow(name="Upload to Snowflake")
+def upload_to_snowflake(results):
+    description_md = (
+        "### Features available:\n"
+        f"```{results}```\n"
+        "### Would you like to upload to snowflake?"
+    )
+
+    logger = get_run_logger()
+    create_artifact_input = pause_flow_run(
+        wait_for_input=CreateArtifactOrSnowflake.with_initial_data(
+            description=description_md, create_artifact=False
+        )
+    )
+    if create_artifact_input.create_artifact == True:
+        logger.info("Uploading to snowflake...")
+        with SnowflakeConnector.load("snowflake_table") as conn:
+            conn.execute(
+                "CREATE TABLE IF NOT EXISTS customers (name varchar, address varchar);"
+            )
+            conn.execute_many(
+                "INSERT INTO customers (name, address) VALUES (%(name)s, %(address)s);",
+                seq_of_parameters=results,
+            )
+    else:
+        raise Exception("User did not approve")
+
+
 if __name__ == "__main__":
     list_of_names = create_names()
     create_artifact()
-    ai_functions.extract_information()
+    results = ai_functions.extract_information()
+    upload_to_snowflake(results)
