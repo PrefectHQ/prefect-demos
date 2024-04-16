@@ -5,6 +5,8 @@ from prefect.artifacts import create_table_artifact
 from prefect.blocks.system import JSON
 from prefect.input import RunInput
 from pydantic import Field
+from prefect_aws.s3 import S3Bucket
+
 
 URL = "https://randomuser.me/api/"
 
@@ -22,10 +24,8 @@ DEFAULT_FEATURES_TO_DROP = [
     "nat",
 ]
 
-
-class CreateArtifact(RunInput):
-    create_artifact: bool = Field(description="Would you like to create an artifact?")
-
+class userApproval(RunInput):
+    approve: bool = Field(description="Would you like to approve?")
 
 class CleanedInput(RunInput):
     features_to_keep: list[str]
@@ -82,11 +82,11 @@ def create_artifact():
 
     logger = get_run_logger()
     create_artifact_input = pause_flow_run(
-        wait_for_input=CreateArtifact.with_initial_data(
-            description=description_md, create_artifact=False
+        wait_for_input=userApproval.with_initial_data(
+            description=description_md, approve=False
         )
     )
-    if create_artifact_input.create_artifact:
+    if create_artifact_input.approve:
         logger.info("Report approved! Creating artifact...")
         create_table_artifact(
             key="table-of-users", table=JSON.load("all-users-json").value
@@ -119,8 +119,42 @@ def create_names():
     JSON(value=df).save("all-users-json", overwrite=True)
     return df
 
+@flow(name="Upload to S3")
+def upload_to_s3(results):
+    logger = get_run_logger()
+    logger.info(f"Uploading to S3: {results}")
+
+    description_md = (
+        "### Features available:\n"
+        f"```{results}```\n"
+        "### Would you like to upload to s3?"
+    )
+
+    logger = get_run_logger()
+    upload_to_s3_input = pause_flow_run(
+        wait_for_input=userApproval.with_initial_data(
+            description=description_md, approve=False
+        )
+    )
+
+    if upload_to_s3_input.approve:
+        s3_bucket_block = S3Bucket.load("interactive-workflow-output")
+
+        logger.info("Report approved! Uploading to s3...")
+        with open("./marvin_result.txt", "w") as outfile:
+            outfile.write(str(results))
+        pass
+        
+        s3_bucket_block.upload_from_path(
+        "./marvin_result.txt", "marvin_result.txt"
+    )
+    return results
+
 
 if __name__ == "__main__":
     list_of_names = create_names()
     create_artifact()
-    ai_functions.extract_information()
+    # TODO add deployment for this entire workflow
+    # add smart naming convention for file names (potentially use marvin?)
+    results = ai_functions.extract_information()
+    upload_to_s3(results)
