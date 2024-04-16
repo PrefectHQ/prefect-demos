@@ -1,3 +1,4 @@
+import json
 from prefect.input import RunInput
 from prefect import get_run_logger
 from prefect.blocks.system import JSON
@@ -26,8 +27,8 @@ DEFAULT_FEATURES_TO_DROP = [
 ]
 
 
-class CreateArtifactOrSnowflake(RunInput):
-    create_artifact: bool = Field(description="Would you like to approve?")
+class userApproval(RunInput):
+    approve: bool = Field(description="Would you like to approve?")
 
 
 class CleanedInput(RunInput):
@@ -86,11 +87,11 @@ def create_artifact():
 
     logger = get_run_logger()
     create_artifact_input = pause_flow_run(
-        wait_for_input=CreateArtifactOrSnowflake.with_initial_data(
-            description=description_md, create_artifact=False
+        wait_for_input=userApproval.with_initial_data(
+            description=description_md, approve=False
         )
     )
-    if create_artifact_input.create_artifact == True:
+    if create_artifact_input.approve == True:
         logger.info("Report approved! Creating artifact...")
         create_table_artifact(
             key="table-of-users", table=JSON.load("all-users-json").value
@@ -131,21 +132,32 @@ def upload_to_snowflake(results):
         f"```{results}```\n"
         "### Would you like to upload to snowflake?"
     )
+    
+    # json_object = json.loads(results[0])
+
+    # json_string = json.dumps(json_object)
+    # print(json_string)
 
     logger = get_run_logger()
     create_artifact_input = pause_flow_run(
-        wait_for_input=CreateArtifactOrSnowflake.with_initial_data(
-            description=description_md, create_artifact=False
+        wait_for_input=userApproval.with_initial_data(
+            description=description_md, approve=False
         )
     )
-    if create_artifact_input.create_artifact == True:
+
+
+    if create_artifact_input.approve == True:
         logger.info("Uploading to snowflake...")
+
+        # recieve keys from json, and pull them out
+        # combine keys and 'varchar' to create a query input
+        # pull all keys and its values from json via extract, and insert into interactive_input table
         with SnowflakeConnector.load("snowflake-table") as conn:
             conn.execute(
-                "CREATE TABLE IF NOT EXISTS customers (name varchar, address varchar);"
+                "CREATE TABLE IF NOT EXISTS interactive_input (name varchar, address varchar);"
             )
             conn.execute_many(
-                "INSERT INTO customers (name, address) VALUES (%(name)s, %(address)s);",
+                "INSERT INTO interactive_input (name, address) VALUES (%(name)s, %(address)s);",
                 seq_of_parameters=results,
             )
     else:
@@ -155,5 +167,9 @@ def upload_to_snowflake(results):
 if __name__ == "__main__":
     list_of_names = create_names()
     create_artifact()
-    results = ai_functions.extract_information()
+    test_results = '[{"name":"Mrs Nella Rinne","location":"6261 Myllypuronkatu, Utajärvi, Uusimaa, 17768, Finland"}]'
+    # [[{'name': {'last': 'Farias', 'first': 'Rui', 'title': 'Mr'}}, {'address': {'city': 'Rio Branco', 'state': 'Tocantins', 'street': {'name': 'Rua Paraná', 'number': 5571}, 'country': 'Brazil', 'postcode': 73835, 'timezone': {'offset': '-5:00', 'description': 'Eastern Time (US & Canada), Bogota, Lima'}, 'coordinates': {'latitude': '-74.3049', 'longitude': '-35.3071'}}}]]
+    results = ai_functions.extract_information_to_json()
+    print(type(results))
+    print(f"Results: {results}")
     upload_to_snowflake(results)

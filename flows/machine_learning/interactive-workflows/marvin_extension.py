@@ -3,10 +3,17 @@ from prefect.blocks.system import Secret
 from prefect import flow, task, get_run_logger, pause_flow_run
 from prefect.input import RunInput
 from prefect.blocks.system import JSON
+from pydantic import BaseModel, Field
+from typing import List
+
 
 DEFAULT_EXTRACT_QUERY = (
-    "Create a table with name and location as two columns" # Create a table of a users name, location, coordinates, and continent the user is located
+    "Create a json with name and address as two keys" # Create a table of a users name, location, coordinates, and continent the user is located
 ) # Group by location and count the number of users in each location.
+
+class ParsedOutput(BaseModel):
+    listOfKeys: List[str] = Field(default_factory=list)
+    key_value: List[List[str]] = Field(default_factory=list)
 
 
 class InputQuery(RunInput):
@@ -14,7 +21,7 @@ class InputQuery(RunInput):
 
 
 @flow(name="Extract User Insights")
-def extract_information():
+def extract_information_to_json():
     secret_block = Secret.load("openai-creds-interactive-workflows")
     marvin.settings.openai.api_key = secret_block.get()
 
@@ -38,10 +45,10 @@ def extract_information():
     User input: {user_input.input_instructions}
     """
     )
-    result = marvin.extract(
+    result_json = marvin.extract(
         JSON.load("all-users-json"),
-        target=str,
-        instructions=user_input.input_instructions,
+        target=list,
+        instructions=user_input.input_instructions + " in JSON format",
     )
-    logger.info(f"Query results: {result}")
-    return result
+    logger.info(f"Query results: {result_json}")
+    return result_json
