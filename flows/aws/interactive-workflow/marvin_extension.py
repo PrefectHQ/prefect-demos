@@ -1,11 +1,10 @@
 import marvin
-from prefect import flow, task, get_run_logger, pause_flow_run
+from prefect import flow, get_run_logger, pause_flow_run, task
 from prefect.blocks.system import JSON, Secret
 from prefect.input import RunInput
-from prefect_aws.s3 import S3Bucket
-from pydantic import BaseModel, constr, Field
 from prefect.variables import Variable
-
+from prefect_aws.s3 import S3Bucket
+from pydantic import BaseModel, Field, constr
 
 DEFAULT_EXTRACT_QUERY = "Group by location and count the number of users in each location."  # Create a table of a users name, location, coordinates, and continent the user is located
 GENERATE_SUGGESTED_FILE_NAME = (
@@ -14,7 +13,7 @@ GENERATE_SUGGESTED_FILE_NAME = (
 
 
 class userApprovalAndFileName(RunInput):
-    #file_name: constr(pattern=r"^[a-zA-Z]+$", max_length=10)
+    # file_name: constr(pattern=r"^[a-zA-Z]+$", max_length=10)
     file_name: str
     approve: bool = Field(description="Would you like to approve?")
 
@@ -102,7 +101,7 @@ def upload_to_s3(results):
             description=description_md, file_name=output_file_name, approve=False
         )
     )
-    output_file_name = upload_to_s3_input.file_name 
+    output_file_name = upload_to_s3_input.file_name
 
     if upload_to_s3_input.approve:
         s3_bucket_block = S3Bucket.load("interactive-workflow-output")

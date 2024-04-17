@@ -6,7 +6,6 @@ from prefect.blocks.system import JSON
 from prefect.input import RunInput
 from pydantic import Field
 
-
 URL = "https://randomuser.me/api/"
 
 DEFAULT_FEATURES_TO_DROP = [
@@ -23,8 +22,10 @@ DEFAULT_FEATURES_TO_DROP = [
     "nat",
 ]
 
+
 class userApproval(RunInput):
     approve: bool = Field(description="Would you like to approve?")
+
 
 class CleanedInput(RunInput):
     features_to_keep: list[str]
@@ -125,6 +126,7 @@ def interactive():
     create_artifact()
     results = ai_functions.extract_information()
     ai_functions.upload_to_s3(results)
+
 
 if __name__ == "__main__":
     interactive()
