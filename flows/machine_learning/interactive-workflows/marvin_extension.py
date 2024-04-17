@@ -1,20 +1,21 @@
 import marvin
-from prefect import flow, get_run_logger, pause_flow_run
+from prefect import flow, task, get_run_logger, pause_flow_run
 from prefect.blocks.system import JSON, Secret
 from prefect.input import RunInput
 from prefect_aws.s3 import S3Bucket
 from pydantic import BaseModel, constr, Field
-
 from prefect.variables import Variable
 
 
 DEFAULT_EXTRACT_QUERY = "Group by location and count the number of users in each location."  # Create a table of a users name, location, coordinates, and continent the user is located
-GENERATE_SUGGESTED_FILE_NAME = "10-letter phrase that describes the user's query: "
-# "Please provide a single word for a file name that describes the user's query: "
+GENERATE_SUGGESTED_FILE_NAME = (
+    "Output a 10-letter single word that describes the user's query: "
+)
 
 
 class userApprovalAndFileName(RunInput):
-    file_name: constr(pattern=r"^[a-zA-Z]+$", max_length=10)
+    #file_name: constr(pattern=r"^[a-zA-Z]+$", max_length=10)
+    file_name: str
     approve: bool = Field(description="Would you like to approve?")
 
 
@@ -30,6 +31,7 @@ class generatedFileName(BaseModel):
 def extract_information():
     secret_block = Secret.load("openai-creds-interactive-workflows")
     marvin.settings.openai.api_key = secret_block.get()
+    logger = get_run_logger()
 
     features = JSON.load("all-users-json").value
     description_md = (
@@ -45,8 +47,6 @@ def extract_information():
             input_instructions=DEFAULT_EXTRACT_QUERY,
         )
     )
-
-    logger = get_run_logger()
 
     logger.info(
         f"""
@@ -65,7 +65,22 @@ def extract_information():
     return result
 
 
-@flow(name="Upload to S3", log_prints=True)
+@task(name="Generate Suggested File Name")
+def generate_suggested_file_name(results):
+    user_query = Variable.get("user_query")
+    instructions = f"{GENERATE_SUGGESTED_FILE_NAME} + {user_query}"
+    marvin_annotated_file_name = marvin.extract(
+        results,
+        target=generatedFileName,
+        instructions=instructions,
+    )
+
+    output_file_name = marvin_annotated_file_name[0].fixed_length_string
+    Variable.set(name=output_file_name, value=output_file_name, overwrite=True)
+    return output_file_name
+
+
+@flow(name="Upload to S3")
 def upload_to_s3(results):
     logger = get_run_logger()
     logger.info(f"Uploading to S3: {results}")
@@ -77,28 +92,17 @@ def upload_to_s3(results):
         "### Please provide a file name based on the query from results.\n"
         "### A suggestion is provided:"
     )
-    user_query = Variable.get("user_query")
 
-    instructions = f"{GENERATE_SUGGESTED_FILE_NAME} + {user_query.value}"
-    print(instructions)
-    marvin_annotated_file_name = marvin.extract(
-        results,
-        target=generatedFileName,
-        instructions=instructions,
-    )
+    # extract providing flaky results, in the meantime just use a static file name
+    # output_file_name = generate_suggested_file_name(results)
+    output_file_name = "marvin_extracted_results"
 
-    output_file_name = marvin_annotated_file_name[0].fixed_length_string
-
-    Variable.set(name=output_file_name, value=output_file_name, overwrite=True)
-
-    print(f"marvin_annotated_file_name: {marvin_annotated_file_name}")
-    print(f"marvin_annotated_file_name.fixed_length_string: {output_file_name}")
-    logger = get_run_logger()
     upload_to_s3_input = pause_flow_run(
         wait_for_input=userApprovalAndFileName.with_initial_data(
             description=description_md, file_name=output_file_name, approve=False
         )
     )
+    output_file_name = upload_to_s3_input.file_name 
 
     if upload_to_s3_input.approve:
         s3_bucket_block = S3Bucket.load("interactive-workflow-output")
@@ -106,10 +110,11 @@ def upload_to_s3(results):
         logger.info("Report approved! Uploading to s3...")
         with open(f"./{output_file_name}.txt", "w") as outfile:
             outfile.write(str(results))
-        pass
+            pass
 
         s3_bucket_block.upload_from_path(
-            f"./{output_file_name}.txt", f"{output_file_name}.txt"
+            f"./{output_file_name}.txt",
+            f"{output_file_name}.txt",
         )
     else:
         raise Exception("User did not approve")

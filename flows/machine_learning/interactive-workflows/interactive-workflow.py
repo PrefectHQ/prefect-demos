@@ -119,11 +119,12 @@ def create_names():
     return df
 
 
-
-if __name__ == "__main__":
-    list_of_names = create_names()
+@flow(name="Interactive Workflow")
+def interactive():
+    create_names()
     create_artifact()
-    # TODO add deployment for this entire workflow
-    # add smart naming convention for file names (potentially use)
     results = ai_functions.extract_information()
     ai_functions.upload_to_s3(results)
+
+if __name__ == "__main__":
+    interactive()

@@ -20,6 +20,7 @@ Interactive Workflow Demo is designed to guide you through the process of settin
 Before starting, ensure you have the following installed:
 - Python 3.6+
 - Prefect
+- Marvin 
 - Any other dependencies listed in `requirements.txt`.
 
 ### Installation
@@ -45,7 +46,11 @@ pip install -r requirements.txt
 
   Make sure Prefect is running and you are logged into Prefect Cloud or your local Prefect instance.
 
-2. **Execute the Workflow**
+2. **Prefect & Marvin environment is set up**
+
+Ensure your S3Bucket block is correctly set up to upload files to that specific region. Additionally, ensure you have the OpenAI api key correctly loaded into Marvin. Once you are authenticated to the correct workspace, you are good to go to run the workflow.
+
+2. **Execute the Deployment script**
 
   Run the main script to execute the interactive workflow
   
