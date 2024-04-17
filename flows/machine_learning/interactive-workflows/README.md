@@ -60,7 +60,24 @@ python interactive-workflows.py
 3. **Follow the interactive prompts to navigate through the workflow.**
 
 ### Understanding the Workflow
-The demo includes detailed comments explaining each step of the workflow and how it integrates with Prefect's features. Pay special attention to the use of blocks for reusable logic and artifacts for visualizing workflow outputs.
+#### 1. deploy-interactive-workflow.py
+
+- **Purpose**: Deploys an interactive workflow using Prefect to a managed execution environment.
+- **Key Components**: Prefect flows, job variable configuration for Python packages.
+- **Usage**: Run this script to deploy the workflow defined in the `interactive-workflow.py` script to an execution environment. Ensure you have Prefect and other dependencies installed.
+
+#### 2. interactive-workflow.py
+
+- **Purpose**: Defines an interactive data processing workflow that fetches data from an API, allows users to specify data cleaning preferences, and manages user approvals for further actions.
+- **Key Components**: Prefect flows and tasks, user interaction for data processing, logging and error handling.
+- **Dependencies**: Requires `marvin_extension` module, `requests` for API calls, and Prefect libraries for workflow management.
+- **Usage**: Run this script in an environment where Prefect is set up and the `marvin_extension.py` is accessible.
+
+#### 3. marvin_extension.py
+
+- **Purpose**: Provides custom functionalities used by the interactive workflow, likely data processing or feature extraction methods tailored for specific needs.
+- **Usage**: This script is imported and used in `interactive-workflow.py`. It should be present in the same directory or properly installed as a module.
+
 
 ### Contributing
 We welcome contributions to improve this demo! Please feel free to fork the repository, make your changes, and submit a pull request. Whether it's adding new features, fixing bugs, or improving the documentation, your contributions are highly appreciated.
