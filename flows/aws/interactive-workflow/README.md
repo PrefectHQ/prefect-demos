@@ -59,7 +59,7 @@ python interactive-workflows.py
 ```
 3. **Follow the interactive prompts to navigate through the workflow.**
 
-### Understanding the Workflow
+## Understanding the Workflow
 #### 1. deploy-interactive-workflow.py
 
 - **Purpose**: Deploys an interactive workflow using Prefect to a managed execution environment.
