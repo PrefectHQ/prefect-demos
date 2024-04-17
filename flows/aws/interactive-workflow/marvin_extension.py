@@ -5,6 +5,8 @@ from prefect.input import RunInput
 from prefect.variables import Variable
 from prefect_aws.s3 import S3Bucket
 from pydantic import BaseModel, Field, constr
+from datetime import datetime
+
 
 DEFAULT_EXTRACT_QUERY = "Group by location and count the number of users in each location."  # Create a table of a users name, location, coordinates, and continent the user is located
 GENERATE_SUGGESTED_FILE_NAME = (
@@ -13,7 +15,6 @@ GENERATE_SUGGESTED_FILE_NAME = (
 
 
 class userApprovalAndFileName(RunInput):
-    # file_name: constr(pattern=r"^[a-zA-Z]+$", max_length=10)
     file_name: str
     approve: bool = Field(description="Would you like to approve?")
 
@@ -22,7 +23,7 @@ class InputQuery(RunInput):
     input_instructions: str
 
 
-class generatedFileName(BaseModel):
+class GeneratedFileName(BaseModel):
     fixed_length_string: constr(pattern=r"^[a-zA-Z]+$", min_length=10, max_length=10)
 
 
@@ -54,7 +55,7 @@ def extract_information():
     """
     )
     result = marvin.extract(
-        JSON.load("all-users-json").value,
+        features,
         target=str,
         instructions=user_input.input_instructions,
     )
@@ -70,7 +71,7 @@ def generate_suggested_file_name(results):
     instructions = f"{GENERATE_SUGGESTED_FILE_NAME} + {user_query}"
     marvin_annotated_file_name = marvin.extract(
         results,
-        target=generatedFileName,
+        target=GeneratedFileName,
         instructions=instructions,
     )
 
@@ -94,7 +95,7 @@ def upload_to_s3(results):
 
     # extract providing flaky results, in the meantime just use a static file name
     # output_file_name = generate_suggested_file_name(results)
-    output_file_name = "marvin_extracted_results"
+    output_file_name = f"{datetime.now()}_marvin_extracted_results"
 
     upload_to_s3_input = pause_flow_run(
         wait_for_input=userApprovalAndFileName.with_initial_data(

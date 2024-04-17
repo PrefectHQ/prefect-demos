@@ -23,7 +23,7 @@ DEFAULT_FEATURES_TO_DROP = [
 ]
 
 
-class userApproval(RunInput):
+class UserApproval(RunInput):
     approve: bool = Field(description="Would you like to approve?")
 
 
@@ -56,7 +56,6 @@ def user_input_remove_features(url: str):
     raw_data = fetch(url)
 
     features = "\n".join(raw_data.get("results")[0].keys())
-    print(f"type(features): {type(features)}")
     description_md = (
         "## Features available:"
         f"\n```json{features}\n```\n"
@@ -82,7 +81,7 @@ def create_artifact():
 
     logger = get_run_logger()
     create_artifact_input = pause_flow_run(
-        wait_for_input=userApproval.with_initial_data(
+        wait_for_input=UserApproval.with_initial_data(
             description=description_md, approve=False
         )
     )
