@@ -30,7 +30,7 @@ jobs:
                 # Optionally, it's possible to specify it using nested
                 # dictionary, where the type of change composes the key.
                 # Multiple change types can be specified using `|` as the delimiter.
-                filters: |
+                filters:
                   addedOrModified:
                     - added|modified: '**'
             
