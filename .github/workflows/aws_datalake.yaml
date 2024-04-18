@@ -18,7 +18,7 @@ jobs:
       runs-on: ubuntu-latest
 
       env:
-        workspace: ${{ github.ref == 'refs/heads/main' && 'se-demos' || 'se-demos-dev' }}
+        WORKSPACE: ${{ github.ref == 'refs/heads/main' && 'se-demos' || 'se-demos-dev' }}
 
       steps:
         - name: Checkout
@@ -50,6 +50,6 @@ jobs:
           run: |
             cd flows/aws/datalake
             pip install -r requirements-ci.txt
-            prefect cloud workspace set -w sales-engineering/$workspace
+            prefect cloud workspace set -w sales-engineering/$WORKSPACE
             python deploy.py
             
