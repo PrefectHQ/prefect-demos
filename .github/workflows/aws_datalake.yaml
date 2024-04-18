@@ -43,6 +43,7 @@ jobs:
 
         - name: Prefect Deploy
           env:
+            BRANCH: ${{ github.ref_name }}
             GITHUB_SHA: ${{ steps.get-commit-hash.outputs.COMMIT_HASH }}
             PREFECT_API_KEY: ${{ secrets.PREFECT_API_KEY }}
             ECR_REPO: ${{ secrets.ECR_REPO }}
