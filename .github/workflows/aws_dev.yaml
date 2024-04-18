@@ -39,5 +39,5 @@ jobs:
 
         - name: Get Working Directory
           id: getwd
-          run: echo {{ steps.filter.outputs.addedOrModified }}
+          run: echo ${{ steps.filter.outputs.addedOrModified }}
             
