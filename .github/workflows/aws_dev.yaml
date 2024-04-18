@@ -35,5 +35,5 @@ jobs:
             # Multiple change types can be specified using `|` as the delimiter.
             filters: |
               addedOrModified:
-                - added|modified: '**'
+                - added|modified: 'flows/aws/**'
             
