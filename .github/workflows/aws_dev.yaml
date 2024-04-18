@@ -36,4 +36,8 @@ jobs:
             filters: |
               addedOrModified:
                 - added|modified: 'flows/aws/**'
+
+        - name: Get Working Directory
+          id: getwd
+          run: echo {{ steps.filter.outputs.addedOrModified }}
             
