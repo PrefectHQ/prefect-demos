@@ -47,6 +47,8 @@ jobs:
             GITHUB_SHA: ${{ steps.get-commit-hash.outputs.COMMIT_HASH }}
             PREFECT_API_KEY: ${{ secrets.PREFECT_API_KEY }}
             ECR_REPO: ${{ secrets.ECR_REPO }}
+            WORKSPACE: ${{ github.ref == 'refs/heads/main' && 'se-demos' || 'se-demos-dev' }}
+            WORK_POOL_NAME: ${{ github.ref == 'refs/heads/main' && 'Demo-ECS' || 'Dev-ECS' }}
           run: |
             cd flows/aws/datalake
             pip install -r requirements-ci.txt
