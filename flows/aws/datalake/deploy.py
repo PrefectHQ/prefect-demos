@@ -30,6 +30,7 @@ fetch_neo_by_date_deployment = fetch_neo_by_date.to_deployment(
 
 ecr_repo = os.getenv("ECR_REPO")
 image_tag = os.getenv("GITHUB_SHA")
+work_pool_name = os.getenv("WORK_POOL_NAME")
 
 
 deploy(
@@ -40,5 +41,5 @@ deploy(
         tag=image_tag,
         dockerfile="Dockerfile",
     ),
-    work_pool_name="Demo-ECS",
+    work_pool_name=work_pool_name,
 )

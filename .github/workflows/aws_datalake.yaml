@@ -7,6 +7,7 @@ on:
   push:
     branches:
       - main
+      - dev
     paths:
       - "flows/aws/datalake/**"
   workflow_dispatch:
@@ -15,6 +16,9 @@ jobs:
   deploy:
       name: Deploy AWS datalake flows
       runs-on: ubuntu-latest
+
+      env:
+        WORKSPACE: ${{ github.ref == 'refs/heads/main' && 'se-demos' || 'se-demos-dev' }}
 
       steps:
         - name: Checkout
@@ -39,12 +43,15 @@ jobs:
 
         - name: Prefect Deploy
           env:
+            BRANCH: ${{ github.ref_name }}
             GITHUB_SHA: ${{ steps.get-commit-hash.outputs.COMMIT_HASH }}
             PREFECT_API_KEY: ${{ secrets.PREFECT_API_KEY }}
             ECR_REPO: ${{ secrets.ECR_REPO }}
+            WORKSPACE: ${{ github.ref == 'refs/heads/main' && 'se-demos' || 'se-demos-dev' }}
+            WORK_POOL_NAME: ${{ github.ref == 'refs/heads/main' && 'Demo-ECS' || 'Dev-ECS' }}
           run: |
             cd flows/aws/datalake
             pip install -r requirements-ci.txt
-            prefect cloud workspace set -w sales-engineering/se-datalake
+            prefect cloud workspace set -w sales-engineering/$WORKSPACE
             python deploy.py
             
