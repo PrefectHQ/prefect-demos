@@ -57,7 +57,7 @@ jobs:
             PREFECT_API_KEY: ${{ secrets.PREFECT_API_KEY }}
             IMG_REPO: ${{ secrets.ECR_REPO }} # IMAGE REGISTRY SECRET should be referenced here
             WORKSPACE: ${{ github.ref == 'refs/heads/main' && 'se-demos' || 'se-demos-dev' }}
-            WORK_POOL_NAME: ${{ github.ref == 'refs/heads/main' && '$PROD_WORKPOOL' || '$DEV_WORKPOOL' }} # Update Workpool names based on desired runtime environment
+            WORK_POOL_NAME: ${{ github.ref == 'refs/heads/main' && '$PROD_WORKPOOL' || '$DEV_WORKPOOL' }}
             SCHEDULES_ACTIVE: ${{ github.ref == 'refs/heads/main' && True || False }}
           run: |
             cd $PROJECT_DIRECTORY
