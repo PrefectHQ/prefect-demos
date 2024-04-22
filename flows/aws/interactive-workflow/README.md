@@ -1,6 +1,6 @@
 # Interactive Workflow Demo with Prefect
 
-This repository demonstrates the integration of Prefect with interactive workflows, aiming to provide a hands-on example for orchestrating complex data pipelines interactively. It showcases how to leverage Prefect's powerful scheduling, execution, and management capabilities to build efficient and scalable data workflows.
+This repository demonstrates the integration of Prefect with interactive workflows, aiming to provide a hands-on example for orchestrating complex data pipelines interactively. It showcases how to leverage Prefect's powerful scheduling, execution, and management capabilities to build efficient and scalable data workflows. Prefect allows for dynamic data cleaning and kicking off jobs based on human involvement. This repo can be great for folks looking to add in more QA steps to their pre-existing pipelines.
 
 ## Overview
 
@@ -18,12 +18,11 @@ Interactive Workflow Demo is designed to guide you through the process of settin
 ### Prerequisites
 
 Before starting, ensure you have the following installed:
-- Python 3.6+
 - Prefect
 - Marvin 
 - Any other dependencies listed in `requirements.txt`.
 
-### Installation
+### Setup
 
 1. Clone this repository:
 ```bash
@@ -41,14 +40,13 @@ source venv/bin/activate  # On Windows use `venv\Scripts\activate`
 pip install -r requirements.txt
 ```
 
-### Running the Demo
 1. **Start Prefect**
 
   Make sure Prefect is running and you are logged into Prefect Cloud or your local Prefect instance.
 
 2. **Prefect & Marvin environment is set up**
 
-Ensure your S3Bucket block is correctly set up to upload files to that specific region. Additionally, ensure you have the OpenAI api key correctly loaded into Marvin. Once you are authenticated to the correct workspace, you are good to go to run the workflow.
+Ensure your [S3Bucket](https://prefecthq.github.io/prefect-aws/s3/) block is correctly set up to upload files to that specific region. Additionally, ensure you have the OpenAI api key correctly loaded into [Marvin](https://www.askmarvin.ai/welcome/installation/). Once you are authenticated to the correct workspace, you are good to go to run the workflow.
 
 2. **Execute the Deployment script**
 
@@ -78,9 +76,6 @@ python interactive-workflows.py
 - **Purpose**: Provides custom functionalities used by the interactive workflow, likely data processing or feature extraction methods tailored for specific needs.
 - **Usage**: This script is imported and used in `interactive-workflow.py`. It should be present in the same directory or properly installed as a module.
 
-
-### Contributing
-We welcome contributions to improve this demo! Please feel free to fork the repository, make your changes, and submit a pull request. Whether it's adding new features, fixing bugs, or improving the documentation, your contributions are highly appreciated.
 
 ### Acknowledgments
 Thanks to the Prefect community for providing the tools and support to make this demo possible.

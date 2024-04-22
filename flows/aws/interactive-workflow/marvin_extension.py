@@ -105,17 +105,8 @@ def upload_to_s3(results):
     output_file_name = upload_to_s3_input.file_name
 
     if upload_to_s3_input.approve:
-        s3_bucket_block = S3Bucket.load("interactive-workflow-output")
+        s3_havanese_path = s3_bucket_block.write_path(path=f"./{output_file_name}.txt", content=str(results))
 
-        logger.info("Report approved! Uploading to s3...")
-        with open(f"./{output_file_name}.txt", "w") as outfile:
-            outfile.write(str(results))
-            pass
-
-        s3_bucket_block.upload_from_path(
-            f"./{output_file_name}.txt",
-            f"{output_file_name}.txt",
-        )
     else:
         raise Exception("User did not approve")
 
