@@ -17,9 +17,6 @@ jobs:
       name: Deploy AWS datalake flows
       runs-on: ubuntu-latest
 
-      env:
-        WORKSPACE: ${{ github.ref == 'refs/heads/main' && 'se-demos' || 'se-demos-dev' }}
-
       steps:
         - name: Checkout
           uses: actions/checkout@v4
