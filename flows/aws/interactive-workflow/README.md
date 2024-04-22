@@ -4,7 +4,7 @@ This repository demonstrates the integration of Prefect with interactive workflo
 
 ## Overview
 
-Interactive Workflow Demo is designed to guide you through the process of setting up and running interactive data pipelines using Prefect. It covers the basics of Prefect's workflow orchestration capabilities, including the use of tasks, flows, parameters, and Prefect Cloud for monitoring and managing workflows.
+Interactive Workflow Demo is designed to guide you through the process of setting up and running interactive data pipelines using Prefect. It covers the basics of Prefect's workflow orchestration capabilities, including the use of tasks, flows, parameters, and Prefect Cloud for monitoring and managing workflows. Human interaction allows for greater oversight over automated processes. Users can intervene in workflows when necessary, for example, to handle exceptions, perform approvals, or make decisions that are too complex or sensitive for automated systems. This adds an important layer of control, ensuring that operations conform to business rules and regulatory requirements. Human operators can modify workflows based on real-time insights and changing conditions, which might be outside the scope of predefined automation rules. 
 
 ## Features
 
@@ -75,7 +75,6 @@ python interactive-workflows.py
 
 - **Purpose**: Provides custom functionalities used by the interactive workflow, likely data processing or feature extraction methods tailored for specific needs.
 - **Usage**: This script is imported and used in `interactive-workflow.py`. It should be present in the same directory or properly installed as a module.
-
 
 ### Acknowledgments
 Thanks to the Prefect community for providing the tools and support to make this demo possible.
