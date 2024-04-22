@@ -1,4 +1,4 @@
-name: Build image and deploy Prefect flow - Project 1
+name: Build image and deploy Prefect flow - Datalake
 
 env:
   PROJECT_NAME: flows/aws/datalake
