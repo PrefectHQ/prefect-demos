@@ -1,0 +1,94 @@
+  - name: "triggered_flow_cw"
+
+    tags: *common_tags
+
+    schedule: null
+
+    entrypoint: "flow_triggered_flows.py:flow_sample1"
+
+    parameters: { }
+
+    triggers:
+
+      type: "compound"
+
+      require: "all"
+
+      within: 60
+
+      triggers:
+
+        - enabled: true
+
+          type: event
+
+          match:
+
+            prefect.resource.id: prefect.flow-run.*
+
+          expect:
+
+            - prefect.flow-run.Completed
+
+          match_related:
+
+            prefect.resource.name: "trigger_flow_1_cw"
+
+            prefect.resource.role: deployment
+
+        - enabled: true
+
+          type: event
+
+          match:
+
+            prefect.resource.id: prefect.flow-run.*
+
+          expect:
+
+            - prefect.flow-run.Completed
+
+          match_related:
+
+            prefect.resource.name: "trigger_flow_2_cw"
+
+            prefect.resource.role: deployment
+
+    work_pool:
+
+      name: *default_work_pool
+
+      work_queue_name: *default_work_queue
+
+  - name: "trigger_flow_1_cw"
+
+    tags: *common_tags
+
+    schedule: null
+
+    entrypoint: "flow_triggered_flows.py:flow_sample2"
+
+    parameters: { }
+
+    work_pool:
+
+      name: *default_work_pool
+
+      work_queue_name: *default_work_queue
+
+  - name: "trigger_flow_2_cw"
+
+    tags: *common_tags
+
+    schedule: null
+
+    entrypoint: "flow_triggered_flows.py:flow_sample3"
+
+    parameters: { }
+
+    work_pool:
+
+      name: *default_work_pool
+
+      work_queue_name: *default_work_queue
+

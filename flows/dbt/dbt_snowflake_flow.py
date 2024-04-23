@@ -42,7 +42,6 @@ def great_expectations_check(fail_on=None):
 
 @flow(name="My DBT Flow")
 def dbt_flow(fail_on: str = None):
-
     logger = get_run_logger()
 
     timeout = trigger_airbyte_sync(uuid="1234-5678-9012-3456")

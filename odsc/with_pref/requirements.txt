@@ -1,0 +1,5 @@
+prefect-aws
+prefect-kubernetes
+pandas
+pydantic
+faker

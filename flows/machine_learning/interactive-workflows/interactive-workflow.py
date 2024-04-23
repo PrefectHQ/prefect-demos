@@ -75,7 +75,6 @@ def user_input_remove_features(url: str):
 
 @flow(name="Create Artifact")
 def create_artifact():
-
     features = JSON.load("all-users-json").value
     description_md = (
         "### Features available:\n"
