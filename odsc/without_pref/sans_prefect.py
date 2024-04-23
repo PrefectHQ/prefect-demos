@@ -18,8 +18,7 @@ def list_s3_objects(s3_block_raw_data: S3Bucket):
         "jaffle_shop_orders.csv",
         "jaffle_shop_locations.csv",
     ]
-    s3_block = S3Bucket.load("raw-data-jaffle-shop")
-    time.sleep(3)
+    time.sleep(2)
     return objs
 
 
@@ -28,21 +27,21 @@ def read_csv_to_df(s3_block_raw_data: S3Bucket, object_key):
     csv = s3_block_raw_data.read_path(object_key)
     df = pd.read_csv(StringIO(csv.decode("utf-8")))
     df_json = df.to_json()
-    time.sleep(3)
+    time.sleep(2)
     return df_json
 
 
 @task
 def find_nulls_in_df(df):
     null_counts = df.isna().sum()
-    time.sleep(4)
+    time.sleep(2)
     return null_counts
 
 
 @task
 def imputation_task(null_count, df):
     imputed_df = df.fillna("Jane")
-    time.sleep(3)
+    time.sleep(2)
     return imputed_df
 
 
@@ -53,11 +52,11 @@ def historical_raw_integration(historical_df, raw_df):
     connector = SnowflakeConnection.load(block_name, validate=False)
     new_rows = connector.read_sql("SELECT * FROM geo_data")
     # integrated = pd.concat([raw_df, historical_df])
-    s3_block = S3Bucket.load("raw-data-jaffle-shop")
+
     # Assert Column Format Matches Historical Data
     # assert integrated.shape[1] == historical_df.shape[1]
 
-    time.sleep(3)
+    time.sleep(2)
 
     return new_rows
 
@@ -67,7 +66,7 @@ def get_geographical_data(block_name: str) -> None:
     # block_name = "historical-data"
     connector = SnowflakeConnection.load(block_name, validate=False)
     new_rows = connector.read_sql("SELECT * FROM geo_data")
-    time.sleep(3)
+    time.sleep(2)
 
     return new_rows
 
@@ -76,21 +75,21 @@ def get_geographical_data(block_name: str) -> None:
 def combine_geo_hist_data(geo_df, hist_df):
     print("Geographical data combined with historical data")
     combined = pd.DataFrame(pd.DataFrame({"test": [1, 2, 3]}))
-    time.sleep(5)
+    time.sleep(3)
     return combined
 
 
 @task
 def column_detection(imputed_df):
     imputed_df.columns = ["ID", "FIRST_NAME", "LAST_NAME"]
-    time.sleep(3)
+    time.sleep(2)
     return imputed_df
 
 
 @task
 def upload_combined_data(final_df):
     print("Uploading")
-    time.sleep(3)
+    time.sleep(4)
     return "Good"
 
 
@@ -106,13 +105,12 @@ default_risk_profile = RiskProfile(
 )
 
 
-@flow()
 def load_in_historical_data():
     # Load in Block to Instantiate Block Object
     s3_block_historical_data = S3Bucket.load("raw-data-jaffle-shop")
 
     for i in range(3):
-        s3_objs = list_s3_objects.submit(s3_block_historical_data)
+        s3_objs = list_s3_objects(s3_block_historical_data)
 
     historical_dfs = {
         "jaffle_shop_customer": pd.DataFrame(
@@ -143,26 +141,26 @@ def load_in_historical_data():
 
 from prefect import flow
 
-@flow()
+
 def data_cleaning_flow(
     start_date: date = date(2020, 2, 1),
     end_date: date = date.today(),
     categories: list[str] = ["Customers", "Geographic", "Sales"],
     risk_profile: RiskProfile = default_risk_profile,
 ):
-    raw_customer_data = ingest_raw_customers.submit(risk_profile)
+    raw_customer_data = ingest_raw_customers(risk_profile)
 
-    null_counts = find_nulls_in_df.submit(raw_customer_data)
+    null_counts = find_nulls_in_df(raw_customer_data)
 
     if null_counts.result().sum() > 0:
-        new_customer_data = imputation_task.submit(null_counts, raw_customer_data)
+        new_customer_data = imputation_task(null_counts, raw_customer_data)
     else:
         new_customer_data = raw_customer_data
 
     # Combine with historical data
     historical_dfs = load_in_historical_data()
 
-    combined = historical_raw_integration.submit(
+    combined = historical_raw_integration(
         historical_dfs["jaffle_shop_customer"],
         new_customer_data,
         return_state=True,
