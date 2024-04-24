@@ -18,7 +18,7 @@ on:
 
 jobs:
   deploy:
-      name: Deploy $PROJECT_NAME flows
+      name: Deploy ${{ env.PROJECT_NAME }} flows
       runs-on: ubuntu-latest
 
       steps:
@@ -50,8 +50,8 @@ jobs:
             PREFECT_API_KEY: ${{ secrets.PREFECT_API_KEY }}
             IMG_REPO: ${{ secrets.ECR_REPO }}
             WORKSPACE: ${{ github.ref == 'refs/heads/main' && 'se-demos' || 'se-demos-dev' }}
-            WORK_POOL_NAME: ${{ github.ref == 'refs/heads/main' && '$PROD_WORKPOOL' || '$DEV_WORKPOOL' }}
-            SCHEDULES_ACTIVE: ${{ github.ref == 'refs/heads/main' && True || False }}
+            WORK_POOL_NAME: ${{ github.ref == 'refs/heads/main' && env.PROD_WORKPOOL || env.DEV_WORKPOOL }}
+            SCHEDULES_ACTIVE: ${{ github.ref == 'refs/heads/main' && 'True' || 'False' }}
           run: |
             cd $PROJECT_DIRECTORY
             pip install -r requirements-ci.txt
