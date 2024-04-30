@@ -4,10 +4,9 @@
 ### within it's own project directory barring external requirements
 ### i.e. workpools or shared resources.
 
-name: Build image and deploy Prefect flow - NAME_OF_PROJECT
+name: Build image and deploy Prefect flow - PROJECT_NAME
 
 env:
-  PROJECT_NAME: NAME_OF_PROJECT
   PROJECT_DIRECTTORY: flows/PATH/TO/PROJECT
   PROD_WORKPOOL: PROD_WORKPOOL_NAME # Preconfigured workpool in the se-demos workspace
   DEV_WORKPOOL: DEV_WORKPOOL_NAME # Preconfigured workpool in the se-demos-dev workspace
@@ -24,7 +23,7 @@ on:
 
 jobs:
   deploy:
-      name: Deploy ${{ env.PROJECT_NAME }} flows
+      name: Deploy PROJECT_NAME flows
       runs-on: ubuntu-latest
 
       steps:

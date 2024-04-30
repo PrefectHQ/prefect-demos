@@ -1,7 +1,6 @@
 name: Build image and deploy Prefect flow - S3 Datalake
 
 env:
-  PROJECT_NAME: S3 Datalake
   PROJECT_DIRECTORY: flows/aws/datalake
   PROD_WORKPOOL: Demo-ECS
   DEV_WORKPOOL: Dev-ECS
@@ -18,7 +17,7 @@ on:
 
 jobs:
   deploy:
-      name: "Deploy $PROJECT_NAME flows"
+      name: Deploy S3flows
       runs-on: ubuntu-latest
 
       steps:
