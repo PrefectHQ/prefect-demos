@@ -1,9 +1,15 @@
-name: Build image and deploy Prefect flow - S3 Datalake
+### Reference template for building new ci processes for
+### new demo projects within the demos repo.
+### Each demo project should be relatively self-contained
+### within it's own project directory barring external requirements
+### i.e. workpools or shared resources.
+
+name: Build image and deploy Prefect flow - PROJECT_NAME
 
 env:
-  PROJECT_DIRECTORY: flows/aws/datalake
-  PROD_WORKPOOL: Demo-ECS
-  DEV_WORKPOOL: Dev-ECS
+  PROJECT_DIRECTTORY: flows/PATH/TO/PROJECT
+  PROD_WORKPOOL: PROD_WORKPOOL_NAME # Preconfigured workpool in the se-demos workspace
+  DEV_WORKPOOL: DEV_WORKPOOL_NAME # Preconfigured workpool in the se-demos-dev workspace
   CLOUD_ENV: AWS # AWS, GCP, AZURE
 
 on:
@@ -17,14 +23,16 @@ on:
 
 jobs:
   deploy:
-      name: Deploy S3flows
+      name: Deploy PROJECT_NAME flows
       runs-on: ubuntu-latest
 
       steps:
         - name: Checkout
           uses: actions/checkout@v4
 
-        - name: Log in to image registry
+        # Appropriate secrets should be set as github secrets
+        # to be referenced here defaults to AWS ECR REPO
+        - name: Log in to image registry 
           uses: docker/login-action@v3
           if: env.CLOUD_ENV == 'AWS'
           with:
@@ -43,14 +51,15 @@ jobs:
             cache: "pip"
 
         - name: Prefect Deploy
+          # ENV variables to reference in deploy.py script
           env:
             BRANCH: ${{ github.ref_name }}
             GITHUB_SHA: ${{ steps.get-commit-hash.outputs.COMMIT_HASH }}
             PREFECT_API_KEY: ${{ secrets.PREFECT_API_KEY }}
-            IMG_REPO: ${{ secrets.ECR_REPO }}
+            IMG_REPO: ${{ secrets.ECR_REPO }} # IMAGE REGISTRY SECRET should be referenced here
             WORKSPACE: ${{ github.ref == 'refs/heads/main' && 'se-demos' || 'se-demos-dev' }}
             WORK_POOL_NAME: ${{ github.ref == 'refs/heads/main' && env.PROD_WORKPOOL || env.DEV_WORKPOOL }}
-            SCHEDULES_ACTIVE: ${{ github.ref == 'refs/heads/main' && 'True' || 'False' }}
+            SCHEDULES_ACTIVE: ${{ github.ref == 'refs/heads/main' && True || False }}
           run: |
             cd $PROJECT_DIRECTORY
             pip install -r requirements-ci.txt
