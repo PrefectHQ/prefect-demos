@@ -3,8 +3,11 @@ Flow for extracting articles from the Dev.to API
 API Documentation: https://developers.forem.com/api
 """
 
+from datetime import timedelta
+
 import httpx
 from prefect import flow, get_run_logger, task
+from prefect.cache_policies import INPUTS, TASK_SOURCE
 
 BASE_URL = "https://dev.to/api"
 
@@ -28,16 +31,24 @@ def list_articles_page(page, per_page: int = 10):
     return resp.json()
 
 
-@task
+@task(
+    # Cache results for 10 minutes for the given inputs and code
+    # Caching will only take effect if stored results are accessible
+    cache_policy=INPUTS + TASK_SOURCE,
+    cache_expiration=timedelta(minutes=10),
+)
 def list_articles(pages: int = 20):
     # Submit all tasks at once for concurrent execution
     # Alternatively use native Python async concurrency
     tasks = [list_articles_page.submit(page) for page in range(1, pages + 1)]
 
+    # Gather the results and return
+    # Yielding interferes with caching
+    articles = list()
     for _task in tasks:
         # Wait for each task's result to be ready
-        for article in _task.result():
-            yield article
+        articles.extend(_task.result())
+    return articles
 
 
 @flow
