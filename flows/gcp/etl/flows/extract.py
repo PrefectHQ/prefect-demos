@@ -8,8 +8,13 @@ from datetime import timedelta
 import httpx
 from prefect import flow, get_run_logger, task
 from prefect.cache_policies import INPUTS, TASK_SOURCE
+from prefect_gcp.cloud_storage import GcsBucket
 
 BASE_URL = "https://dev.to/api"
+
+# Bucket must be saved to be used for result storage
+BUCKET_NAME = "prefect-cloud-run-worker-storage"
+BUCKET = GcsBucket.load(BUCKET_NAME)
 
 
 @task(
@@ -19,7 +24,7 @@ BASE_URL = "https://dev.to/api"
     # Tag with API route for concurrency limiting
     tags=["dev-to-api/articles"],
 )
-def list_articles_page(page, per_page: int = 10):
+def list_articles_page(page: int, per_page: int = 10) -> list[dict]:
     resp = httpx.get(
         url=f"{BASE_URL}/articles",
         params={
@@ -32,12 +37,12 @@ def list_articles_page(page, per_page: int = 10):
 
 
 @task(
-    # Cache results for 10 minutes for the given inputs and code
+    # Cache results for 1 hour for the given inputs and code
     # Caching will only take effect if stored results are accessible
     cache_policy=INPUTS + TASK_SOURCE,
-    cache_expiration=timedelta(minutes=10),
+    cache_expiration=timedelta(hours=1),
 )
-def list_articles(pages: int = 20):
+def list_articles(pages: int) -> list[dict]:
     # Submit all tasks at once for concurrent execution
     # Alternatively use native Python async concurrency
     tasks = [list_articles_page.submit(page) for page in range(1, pages + 1)]
@@ -51,12 +56,74 @@ def list_articles(pages: int = 20):
     return articles
 
 
+@task(
+    # Cache results for 1 day for the given inputs and code
+    cache_policy=INPUTS + TASK_SOURCE,
+    cache_expiration=timedelta(days=1),
+    # Avoids downloading already cached articles
+    # NOTE: Not sure this actually works
+    cache_result_in_memory=False,
+    # Configures caching for later non-task access
+    # NOTE: The result is stored under a `data` key alongside metadata
+    result_storage_key="dev-to-api/articles/{parameters[article_id]}.json",
+    result_serializer="json",
+    # result_storage=BUCKET,
+    # Retry in 10, then 30, then 60 seconds
+    retries=3,
+    retry_delay_seconds=[10, 30, 60],
+    # Tag with API route for concurrency limiting
+    tags=["dev-to-api/articles"],
+)
+def get_article(article_id: int, persist: bool = False) -> dict:
+    url = f"{BASE_URL}/articles/{article_id}"
+    get_run_logger().info(f"Fetching {url}")
+    resp = httpx.get(url)
+    resp.raise_for_status()
+
+    # We can persist the data ourselves and just make the result the path
+    # This offers additional control over the result format
+    if persist:
+        path = f"dev-to-api/articles/{article_id}.json"
+        BUCKET.write_path(
+            path=path,
+            content=resp.content,
+        )
+        return path
+    else:
+        return resp.json()
+
+
 @flow
-def extract():
-    articles = list_articles()
+def extract(
+    remote_storage: bool,
+    refresh_cache: bool,
+    pages: int = 20,
+):
+    """
+    Test cached fetching of 200 articles from the Dev.to API
+
+    Local runtimes:
+        Local storage first run: ~30s
+        Local storage cached run: ~8s
+        GCS storage first run: ~1m20s
+        GCS storage cached run: ~2m20s
+    """
+    articles = list_articles(pages)
+    tasks = list()
+
+    # Vary the result and caching of the task
+    _get_article = get_article.with_options(
+        result_storage=BUCKET if remote_storage else None,
+        refresh_cache=refresh_cache,
+    )
+
     for article in articles:
-        get_run_logger().info(article["title"])
+        get_run_logger().info(f"[{article['id']}] {article['title']}")
+        tasks.append(_get_article.submit(article["id"]))
+
+    # Explicitly wait for all tasks to complete
+    [_task.wait() for _task in tasks]
 
 
 if __name__ == "__main__":
-    extract()
+    extract(remote_storage=True, refresh_cache=True)
