@@ -4,7 +4,6 @@ API Documentation: https://developers.forem.com/api
 """
 
 from datetime import timedelta
-from functools import partial
 
 import httpx
 from prefect import flow, get_run_logger, tags, task
@@ -147,25 +146,24 @@ def extract(
     articles = list_articles(pages)
     tasks = list()
 
-    # Using run_deployment to scale out across Cloud Run jobs
-    if scale_out:
-        # This is really here just so that the task.submit call below is consistent for both cases
-        _get_article = partial(
-            get_article_run_deployment,
-            remote_storage=remote_storage,
-            refresh_cache=refresh_cache,
-        )
-    # Using Prefect tasks to scale out across threads
-    else:
-        # Vary the result and caching of the task
-        _get_article = get_article.with_options(
-            result_storage=BUCKET if remote_storage else None,
-            refresh_cache=refresh_cache,
-        )
-
     for article in articles:
         get_run_logger().info(f"[{article['id']}] {article['title']}")
-        tasks.append(_get_article.submit(article["id"]))
+        # Using run_deployment to scale out across Cloud Run jobs
+        if scale_out:
+            _task = get_article_run_deployment.submit(
+                article_id=article["id"],
+                remote_storage=remote_storage,
+                refresh_cache=refresh_cache,
+            )
+        # Using Prefect tasks to scale out across threads
+        else:
+            # Vary the result and caching of the task
+            _get_article = get_article.with_options(
+                result_storage=BUCKET if remote_storage else None,
+                refresh_cache=refresh_cache,
+            )
+            _get_article.submit(article_id=article["id"])
+        tasks.append(_task)
 
     # Explicitly wait for all tasks to complete
     [_task.wait() for _task in tasks]
@@ -173,4 +171,4 @@ def extract(
 
 if __name__ == "__main__":
     with tags("local"):
-        extract(remote_storage=True, refresh_cache=True)
+        extract(remote_storage=True, refresh_cache=True, scale_out=True)
