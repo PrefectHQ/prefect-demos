@@ -6,7 +6,7 @@ API Documentation: https://developers.forem.com/api
 from datetime import timedelta
 
 import httpx
-from prefect import flow, get_run_logger, task
+from prefect import flow, get_run_logger, tags, task
 from prefect.cache_policies import INPUTS, TASK_SOURCE
 from prefect_gcp.cloud_storage import GcsBucket
 
@@ -126,4 +126,5 @@ def extract(
 
 
 if __name__ == "__main__":
-    extract(remote_storage=True, refresh_cache=True)
+    with tags("local"):
+        extract(remote_storage=True, refresh_cache=True)
