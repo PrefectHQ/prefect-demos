@@ -162,7 +162,7 @@ def extract(
                 result_storage=BUCKET if remote_storage else None,
                 refresh_cache=refresh_cache,
             )
-            _get_article.submit(article_id=article["id"])
+            _task = _get_article.submit(article_id=article["id"])
         tasks.append(_task)
 
     # Explicitly wait for all tasks to complete
