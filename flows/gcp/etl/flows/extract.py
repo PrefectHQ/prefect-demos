@@ -4,10 +4,12 @@ API Documentation: https://developers.forem.com/api
 """
 
 from datetime import timedelta
+from functools import partial
 
 import httpx
 from prefect import flow, get_run_logger, tags, task
 from prefect.cache_policies import INPUTS, TASK_SOURCE
+from prefect.deployments import run_deployment
 from prefect_gcp.cloud_storage import GcsBucket
 
 BASE_URL = "https://dev.to/api"
@@ -94,9 +96,43 @@ def get_article(article_id: int, persist: bool = False) -> dict:
 
 
 @flow
+def get_article_flow(
+    article_id: int,
+    remote_storage: bool,
+    refresh_cache: bool,
+):
+    """Wrap get_article in a flow for deployment"""
+    _get_article = get_article.with_options(
+        result_storage=BUCKET if remote_storage else None,
+        refresh_cache=refresh_cache,
+    )
+    _get_article(article_id=article_id)
+
+
+@task
+def get_article_run_deployment(
+    article_id: int,
+    remote_storage: bool,
+    refresh_cache: bool,
+):
+    # Run the flow as a deployment and wait
+    run_deployment(
+        name="get-article-flow/extract-cloud-run-flow",
+        parameters={
+            "article_id": article_id,
+            "remote_storage": remote_storage,
+            "refresh_cache": refresh_cache,
+        },
+        # Wait indefinitely (default behavior)
+        timeout=None,
+    )
+
+
+@flow
 def extract(
     remote_storage: bool,
     refresh_cache: bool,
+    scale_out: bool,
     pages: int = 20,
 ):
     """
@@ -111,11 +147,21 @@ def extract(
     articles = list_articles(pages)
     tasks = list()
 
-    # Vary the result and caching of the task
-    _get_article = get_article.with_options(
-        result_storage=BUCKET if remote_storage else None,
-        refresh_cache=refresh_cache,
-    )
+    # Using run_deployment to scale out across Cloud Run jobs
+    if scale_out:
+        # This is really here just so that the task.submit call below is consistent for both cases
+        _get_article = partial(
+            get_article_run_deployment,
+            remote_storage=remote_storage,
+            refresh_cache=refresh_cache,
+        )
+    # Using Prefect tasks to scale out across threads
+    else:
+        # Vary the result and caching of the task
+        _get_article = get_article.with_options(
+            result_storage=BUCKET if remote_storage else None,
+            refresh_cache=refresh_cache,
+        )
 
     for article in articles:
         get_run_logger().info(f"[{article['id']}] {article['title']}")
