@@ -1,0 +1,10 @@
+[project]
+name = "etl"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "prefect-gcp>=0.6.1",
+    "prefect>=3.0.3",
+]
