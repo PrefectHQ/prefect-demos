@@ -24,13 +24,13 @@ resource "prefect_work_pool" "cloud_run_pool" {
 
   # Merge the default cloud run base job template with custom variables
   base_job_template = jsonencode(merge(
-    jsondecode(data.prefect_worker_metadata.d.base_job_configs.cloud_run),
+    jsondecode(data.prefect_worker_metadata.d.base_job_configs.cloud_run_v2),
     {
       variables = merge(
-        jsondecode(data.prefect_worker_metadata.d.base_job_configs.cloud_run).variables,
+        jsondecode(data.prefect_worker_metadata.d.base_job_configs.cloud_run_v2).variables,
         {
           properties = merge(
-            jsondecode(data.prefect_worker_metadata.d.base_job_configs.cloud_run).variables.properties,
+            jsondecode(data.prefect_worker_metadata.d.base_job_configs.cloud_run_v2).variables.properties,
             {
               # Anything in variables can be set here
               for key, value in {
@@ -40,7 +40,7 @@ resource "prefect_work_pool" "cloud_run_pool" {
                 region               = var.region,
                 service_account_name = google_service_account.prefect_sa.email
                 } : key => merge(
-                jsondecode(data.prefect_worker_metadata.d.base_job_configs.cloud_run).variables.properties[key],
+                jsondecode(data.prefect_worker_metadata.d.base_job_configs.cloud_run_v2).variables.properties[key],
                 { default = value }
               )
             }
