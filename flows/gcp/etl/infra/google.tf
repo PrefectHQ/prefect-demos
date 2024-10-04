@@ -29,8 +29,9 @@ resource "google_storage_bucket" "prefect_bucket" {
 }
 
 resource "google_cloud_run_v2_service" "prefect_worker" {
-  name     = var.name
-  location = var.region
+  name                = var.name
+  location            = var.region
+  deletion_protection = false
 
   template {
     containers {
@@ -60,6 +61,7 @@ resource "google_cloud_run_v2_service" "prefect_worker" {
 
     scaling {
       min_instance_count = 1
+      max_instance_count = 1
     }
   }
 }
