@@ -18,17 +18,9 @@ def deploy():
 
     flow.from_source(
         source=repo,
-        entrypoint="flows/gcp/etl/flows/extract.py:extract",
+        entrypoint="flows/gcp/etl/flows/extract/subflow.py:fetch_url_flow",
     ).deploy(
-        name="extract-cloud-run",
-        work_pool_name="cloud-run",
-    )
-
-    flow.from_source(
-        source=repo,
-        entrypoint="flows/gcp/etl/flows/extract.py:get_article_flow",
-    ).deploy(
-        name="extract-cloud-run-flow",
+        name="cloud-run",
         work_pool_name="cloud-run",
     )
 
