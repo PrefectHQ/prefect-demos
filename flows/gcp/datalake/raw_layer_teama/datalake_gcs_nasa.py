@@ -10,6 +10,7 @@ from prefect.blocks.system import Secret
 from prefect_gcp import GcsBucket
 
 from prefect.client.schemas.schedules import CronSchedule
+from prefect.runner.storage import GitRepository
 
 schedules_active = os.getenv("SCHEDULES_ACTIVE", "False")
 
@@ -72,8 +73,11 @@ def fetch_neo_by_date(n_days: int = 1, file_location: str = "RAW_DATA"):
 if __name__ == "__main__":
     # fetch_neo_by_date()
     fetch_neo_by_date_deployment = fetch_neo_by_date.from_source(
-        source="./flows/gcp/datalake/raw_layer_teama/",
-        entrypoint="datalake_gcs_nasa.py:fetch_neo_by_date"
+        source=GitRepository(
+            url="https://github.com/PrefectHQ/prefect-demos.git",
+            branch="prefect-3-update-gcp-ex"
+        ),
+        entrypoint="flows/gcp/datalake/raw_layer_teama/datalake_gcs_nasa.py:fetch_neo_by_date"
     ).to_deployment(
         name="gcs_nasa_fetch",
         schedules=[
@@ -86,5 +90,8 @@ if __name__ == "__main__":
 
     deploy(
         fetch_neo_by_date_deployment,
-        work_pool_name="project2"
+        work_pool_name="mm2-project2",
+        image="us-central1-docker.pkg.dev/prefect-sbx-sales-engineering/masonm2-supporttesting/mason_gcs_default:09262025.2",
+        build=False,
+        push=False
     )

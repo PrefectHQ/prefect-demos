@@ -6,6 +6,7 @@ from prefect_gcp import GcsBucket
 from prefect.assets import materialize, Asset
 
 from prefect.events import DeploymentEventTrigger
+from prefect.runner.storage import GitRepository
 
 
 
@@ -103,8 +104,11 @@ def datalake_listener(bucket: str, key: str):
 if __name__ == "__main__":
     # datalake_listener(key="RAW_DATA/2025-09-25-neo_result.json")
     datalake_listener_deployment = datalake_listener.from_source(
-        source="./flows/gcp/datalake/processing_layer_teamb/",
-        entrypoint="datalake_listener.py:datalake_listener"
+        source=GitRepository(
+            url="https://github.com/PrefectHQ/prefect-demos.git",
+            branch="prefect-3-update-gcp-ex"
+        ),
+        entrypoint="flows/gcp/datalake/processing_layer_teamb/datalake_listener.py:datalake_listener"
     ).to_deployment(
     name="datalake_listener",
     triggers=[
@@ -123,5 +127,8 @@ if __name__ == "__main__":
 
     deploy(
         datalake_listener_deployment,
-        work_pool_name="project1"
+        work_pool_name="mm2-project1",
+        image="us-central1-docker.pkg.dev/prefect-sbx-sales-engineering/masonm2-supporttesting/mason_gcs_default:09262025.2",
+        build=False,
+        push=False
     )
